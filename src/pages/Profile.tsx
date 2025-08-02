@@ -9,18 +9,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import ProfileAvatar from "../components/ProfileAvatar";
 import { LogOut, Trash2, ChevronDown } from "lucide-react";
-
-// Demo session values (mock)
-const mockUser = {
-  name: "Jane Doe",
-  email: "jane.doe@email.com",
-  phone: "",
-  dob: "",
-  gender: "",
-  address: "",
-  preferred: "",
-  avatar: "",
-};
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const langs = [
   { label: "English", value: "en" },
@@ -32,28 +22,52 @@ const langs = [
 ];
 
 export default function Profile() {
-  // Profile state (normally from context or API)
-  const [user, setUser] = useState({ ...mockUser });
+  const { user: authUser, signOut } = useAuth();
+  const { toast } = useToast();
+  
+  // Profile state
+  const [userProfile, setUserProfile] = useState({
+    name: authUser?.name || "",
+    email: authUser?.email || "",
+    phone: "",
+    dob: "",
+    gender: "",
+    address: "",
+    preferred: "",
+    avatar: authUser?.avatar || "",
+  });
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [language, setLanguage] = useState("en");
   const [notifications, setNotifications] = useState(true);
   const [openDelete, setOpenDelete] = useState(false);
 
   function handleChange(field: string, value: any) {
-    setUser((u) => ({ ...u, [field]: value }));
+    setUserProfile((u) => ({ ...u, [field]: value }));
   }
 
-  function handleLogout() {
-    // Logout logic (mock)
-    window.localStorage.removeItem("hm_user");
-    window.location.href = "/auth";
+  async function handleLogout() {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   function handleDeleteAccount() {
     setOpenDelete(false);
-    // Account deletion logic here (mock)
-    window.localStorage.clear();
-    window.location.href = "/auth";
+    // Account deletion logic would go here
+    toast({
+      title: "Account deletion",
+      description: "Account deletion functionality will be implemented soon.",
+    });
   }
 
   function handleExport(type: "pdf" | "csv") {
@@ -68,10 +82,10 @@ export default function Profile() {
         <Card className="rounded-xl shadow-md mb-6 animate-fade-in">
           <CardHeader className="flex flex-col items-center gap-2 pb-2">
             <ProfileAvatar
-              src={user.avatar}
+              src={userProfile.avatar}
               onChange={(img) => handleChange("avatar", img)}
             />
-            <CardTitle className="text-center mt-2">{user.name || "Your Name"}</CardTitle>
+            <CardTitle className="text-center mt-2">{userProfile.name || authUser?.name || "Your Name"}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
@@ -80,7 +94,7 @@ export default function Profile() {
                 <Label>Name</Label>
                 <Input
                   placeholder="Enter your name"
-                  value={user.name}
+                  value={userProfile.name}
                   onChange={e => handleChange("name", e.target.value)}
                   className="mt-1"
                 />
@@ -91,10 +105,11 @@ export default function Profile() {
                 <Input
                   type="email"
                   placeholder="Enter your email"
-                  value={user.email}
+                  value={userProfile.email}
                   onChange={e => handleChange("email", e.target.value)}
                   className="mt-1"
                   autoComplete="username"
+                  disabled // Email can't be changed after signup
                 />
               </div>
               {/* Phone */}
@@ -103,7 +118,7 @@ export default function Profile() {
                 <Input
                   type="tel"
                   placeholder="Enter your phone number"
-                  value={user.phone}
+                  value={userProfile.phone}
                   onChange={e => handleChange("phone", e.target.value)}
                   className="mt-1"
                   autoComplete="tel"
@@ -114,7 +129,7 @@ export default function Profile() {
                 <Label>Date of Birth</Label>
                 <Input
                   type="date"
-                  value={user.dob}
+                  value={userProfile.dob}
                   onChange={e => handleChange("dob", e.target.value)}
                   className="mt-1"
                 />
@@ -122,7 +137,7 @@ export default function Profile() {
               {/* Gender */}
               <div>
                 <Label>Gender</Label>
-                <Select value={user.gender} onValueChange={v => handleChange("gender", v)}>
+                <Select value={userProfile.gender} onValueChange={v => handleChange("gender", v)}>
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select..." />
                   </SelectTrigger>
@@ -138,7 +153,7 @@ export default function Profile() {
                 <Label>Address</Label>
                 <Input
                   placeholder="Your address"
-                  value={user.address}
+                  value={userProfile.address}
                   onChange={e => handleChange("address", e.target.value)}
                   className="mt-1"
                   autoComplete="street-address"
@@ -149,7 +164,7 @@ export default function Profile() {
                 <Label>Preferred Doctor/Hospital <span className="text-xs text-gray-400">(optional)</span></Label>
                 <Input
                   placeholder="Type a name or hospital..."
-                  value={user.preferred}
+                  value={userProfile.preferred}
                   onChange={e => handleChange("preferred", e.target.value)}
                   className="mt-1"
                 />
