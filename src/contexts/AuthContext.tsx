@@ -2,6 +2,7 @@
 import React, { createContext, useEffect, useState, useContext } from "react";
 import { supabase } from "@/lib/supabase";
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
+import SupabaseConnectionAlert from "@/components/SupabaseConnectionAlert";
 
 // Type for user
 export interface User {
@@ -27,8 +28,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [supabaseConnected, setSupabaseConnected] = useState(true);
+
+  // Check if Supabase is properly connected
+  const checkSupabaseConnection = () => {
+    const hasUrl = !!import.meta.env.VITE_SUPABASE_URL;
+    const hasKey = !!import.meta.env.VITE_SUPABASE_ANON_KEY;
+    return hasUrl && hasKey;
+  };
 
   useEffect(() => {
+    // Check Supabase connection first
+    if (!checkSupabaseConnection()) {
+      setSupabaseConnected(false);
+      setLoading(false);
+      return;
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -40,6 +56,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           avatar: session.user.user_metadata?.avatar_url,
         });
       }
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Error getting session:', error);
       setLoading(false);
     });
 
@@ -61,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string, name?: string) => {
@@ -89,6 +108,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     await supabase.auth.signOut();
   };
+
+  // Show connection alert if Supabase isn't connected
+  if (!supabaseConnected) {
+    return <SupabaseConnectionAlert />;
+  }
 
   return (
     <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>

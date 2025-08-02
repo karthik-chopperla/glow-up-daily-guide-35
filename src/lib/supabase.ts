@@ -1,16 +1,30 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Debug: Log all environment variables to see what's available
-console.log('All env vars:', import.meta.env)
-console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL)
-console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY)
-
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables:', { supabaseUrl, supabaseAnonKey })
-  throw new Error('Missing Supabase environment variables. Please ensure Supabase is properly connected in your Lovable project.')
+console.log('Supabase connection status:', {
+  url: supabaseUrl ? 'Available' : 'Missing',
+  key: supabaseAnonKey ? 'Available' : 'Missing'
+})
+
+// Create a mock client if Supabase isn't connected
+let supabase: any
+
+if (supabaseUrl && supabaseAnonKey) {
+  supabase = createClient(supabaseUrl, supabaseAnonKey)
+} else {
+  console.warn('Supabase not connected - using mock client')
+  // Mock client for development when Supabase isn't connected
+  supabase = {
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      signUp: () => Promise.resolve({ error: { message: 'Supabase not connected' } }),
+      signInWithPassword: () => Promise.resolve({ error: { message: 'Supabase not connected' } }),
+      signOut: () => Promise.resolve({ error: null })
+    }
+  }
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export { supabase }
