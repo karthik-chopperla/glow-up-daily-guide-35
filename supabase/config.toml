@@ -1,1 +1,4 @@
 project_id = "uompjtduifsbykkfryor"
+
+[functions.health-ai-chat]
+verify_jwt = false

@@ -28,7 +28,7 @@ const Auth = () => {
     const password = formData.get("password") as string;
     const name = formData.get("name") as string;
 
-    const { error } = await signUp(email, password, name);
+    const { error } = await signUp(email, password, { full_name: name });
     
     if (error) {
       setError(error.message);

@@ -14,7 +14,185 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_time: string
+          created_at: string
+          doctor_name: string
+          id: string
+          notes: string | null
+          specialty: string
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_time: string
+          created_at?: string
+          doctor_name: string
+          id?: string
+          notes?: string | null
+          specialty: string
+          status?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_time?: string
+          created_at?: string
+          doctor_name?: string
+          id?: string
+          notes?: string | null
+          specialty?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_data: {
+        Row: {
+          calories_burned: number | null
+          created_at: string
+          date: string
+          id: string
+          sleep_hours: number | null
+          steps_today: number | null
+          updated_at: string
+          user_id: string
+          water_today: number | null
+        }
+        Insert: {
+          calories_burned?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          sleep_hours?: number | null
+          steps_today?: number | null
+          updated_at?: string
+          user_id: string
+          water_today?: number | null
+        }
+        Update: {
+          calories_burned?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          sleep_hours?: number | null
+          steps_today?: number | null
+          updated_at?: string
+          user_id?: string
+          water_today?: number | null
+        }
+        Relationships: []
+      }
+      medicine_reminders: {
+        Row: {
+          auto_refill: boolean | null
+          created_at: string
+          dose: string
+          frequency: string
+          id: string
+          is_active: boolean | null
+          name: string
+          times: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_refill?: boolean | null
+          created_at?: string
+          dose: string
+          frequency: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          times: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_refill?: boolean | null
+          created_at?: string
+          dose?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          times?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reminder_logs: {
+        Row: {
+          date: string
+          id: string
+          reminder_id: string
+          taken_at: string
+          time_slot: string
+          user_id: string
+          was_taken: boolean | null
+        }
+        Insert: {
+          date?: string
+          id?: string
+          reminder_id: string
+          taken_at?: string
+          time_slot: string
+          user_id: string
+          was_taken?: boolean | null
+        }
+        Update: {
+          date?: string
+          id?: string
+          reminder_id?: string
+          taken_at?: string
+          time_slot?: string
+          user_id?: string
+          was_taken?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_logs_reminder_id_fkey"
+            columns: ["reminder_id"]
+            isOneToOne: false
+            referencedRelation: "medicine_reminders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

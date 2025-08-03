@@ -1,6 +1,6 @@
 
 import React, { createContext, useEffect, useState, useContext } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
 import SupabaseConnectionAlert from "@/components/SupabaseConnectionAlert";
 
@@ -17,7 +17,7 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -32,9 +32,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check if Supabase is properly connected
   const checkSupabaseConnection = () => {
-    const hasUrl = !!import.meta.env.VITE_SUPABASE_URL;
-    const hasKey = !!import.meta.env.VITE_SUPABASE_ANON_KEY;
-    return hasUrl && hasKey;
+    // Since we're using the integrated client, check if it's properly configured
+    try {
+      return !!supabase && typeof supabase.auth.getSession === 'function';
+    } catch {
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -83,14 +86,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription?.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, name?: string) => {
+  const signUp = async (email: string, password: string, metadata?: any) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectUrl,
         data: {
-          name: name,
-          full_name: name,
+          full_name: metadata?.full_name || metadata?.name || '',
+          name: metadata?.name || metadata?.full_name || '',
         },
       },
     });
