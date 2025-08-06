@@ -20,7 +20,10 @@ export type Database = {
           created_at: string
           doctor_name: string
           id: string
+          message: string | null
           notes: string | null
+          notification_sent: boolean | null
+          partner_id: string | null
           specialty: string
           status: string
           type: string
@@ -32,7 +35,10 @@ export type Database = {
           created_at?: string
           doctor_name: string
           id?: string
+          message?: string | null
           notes?: string | null
+          notification_sent?: boolean | null
+          partner_id?: string | null
           specialty: string
           status?: string
           type: string
@@ -44,7 +50,10 @@ export type Database = {
           created_at?: string
           doctor_name?: string
           id?: string
+          message?: string | null
           notes?: string | null
+          notification_sent?: boolean | null
+          partner_id?: string | null
           specialty?: string
           status?: string
           type?: string
@@ -130,27 +139,48 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          is_email_verified: boolean | null
+          location_lat: number | null
+          location_lng: number | null
+          partner_type: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          is_email_verified?: boolean | null
+          location_lat?: number | null
+          location_lng?: number | null
+          partner_type?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          is_email_verified?: boolean | null
+          location_lat?: number | null
+          location_lng?: number | null
+          partner_type?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
           updated_at?: string
         }
         Relationships: []
@@ -193,6 +223,39 @@ export type Database = {
           },
         ]
       }
+      sos_alerts: {
+        Row: {
+          created_at: string
+          id: string
+          location_lat: number
+          location_lng: number
+          nearest_partner_id: string | null
+          status: string | null
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_lat: number
+          location_lng: number
+          nearest_partner_id?: string | null
+          status?: string | null
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_lat?: number
+          location_lng?: number
+          nearest_partner_id?: string | null
+          status?: string | null
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -201,7 +264,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "user" | "partner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -328,6 +391,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["user", "partner"],
+    },
   },
 } as const

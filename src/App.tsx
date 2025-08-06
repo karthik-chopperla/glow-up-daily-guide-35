@@ -22,6 +22,8 @@ import Insurance from "./pages/Insurance";
 import MyRecords from "./pages/MyRecords";
 import Profile from "./pages/Profile";
 import HomeScreen from "./pages/HomeScreen";
+import UserHome from "./pages/UserHome";
+import PartnerHome from "./pages/PartnerHome";
 import ServicesScreen from "./pages/ServicesScreen";
 import BottomTabNav from "./components/BottomTabNav";
 import FabSOS from "./components/ui/FabSOS";
@@ -188,6 +190,16 @@ const AppRoutes = () => {
         <Route path="/subscription-plans" element={
           <ProtectedRoute>
             <SubscriptionPlans />
+          </ProtectedRoute>
+        } />
+        <Route path="/user-home" element={
+          <ProtectedRoute>
+            <UserHome />
+          </ProtectedRoute>
+        } />
+        <Route path="/partner-home" element={
+          <ProtectedRoute>
+            <PartnerHome />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" />} />

@@ -97,6 +97,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         data: {
           full_name: metadata?.full_name || metadata?.name || '',
           name: metadata?.name || metadata?.full_name || '',
+          role: metadata?.role || 'user',
+          phone: metadata?.phone,
+          partner_type: metadata?.partner_type,
+          address: metadata?.address,
+          location_lat: metadata?.location_lat,
+          location_lng: metadata?.location_lng,
         },
       },
     });
