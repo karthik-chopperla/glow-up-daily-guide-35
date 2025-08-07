@@ -19,11 +19,14 @@ export type Database = {
           appointment_time: string
           created_at: string
           doctor_name: string
+          estimated_duration: number | null
           id: string
+          location_preference: string | null
           message: string | null
           notes: string | null
           notification_sent: boolean | null
           partner_id: string | null
+          service_type: string | null
           specialty: string
           status: string
           type: string
@@ -34,11 +37,14 @@ export type Database = {
           appointment_time: string
           created_at?: string
           doctor_name: string
+          estimated_duration?: number | null
           id?: string
+          location_preference?: string | null
           message?: string | null
           notes?: string | null
           notification_sent?: boolean | null
           partner_id?: string | null
+          service_type?: string | null
           specialty: string
           status?: string
           type: string
@@ -49,16 +55,58 @@ export type Database = {
           appointment_time?: string
           created_at?: string
           doctor_name?: string
+          estimated_duration?: number | null
           id?: string
+          location_preference?: string | null
           message?: string | null
           notes?: string | null
           notification_sent?: boolean | null
           partner_id?: string | null
+          service_type?: string | null
           specialty?: string
           status?: string
           type?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      food_items: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean | null
+          name: string
+          partner_id: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name: string
+          partner_id: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name?: string
+          partner_id?: string
+          price?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -95,6 +143,84 @@ export type Database = {
           updated_at?: string
           user_id?: string
           water_today?: number | null
+        }
+        Relationships: []
+      }
+      health_packages: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string | null
+          duration_months: number | null
+          id: string
+          is_active: boolean | null
+          package_name: string
+          price: number | null
+          services_included: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description?: string | null
+          duration_months?: number | null
+          id?: string
+          is_active?: boolean | null
+          package_name: string
+          price?: number | null
+          services_included?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          duration_months?: number | null
+          id?: string
+          is_active?: boolean | null
+          package_name?: string
+          price?: number | null
+          services_included?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      insurance_plans: {
+        Row: {
+          agent_id: string
+          coverage_details: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          plan_name: string
+          price_range: string | null
+          target_locations: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          coverage_details?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          plan_name: string
+          price_range?: string | null
+          target_locations?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          coverage_details?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          plan_name?: string
+          price_range?: string | null
+          target_locations?: string[] | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -140,48 +266,75 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          availability_schedule: string | null
           avatar_url: string | null
+          business_type: string | null
+          city: string | null
           created_at: string
           email: string | null
+          expertise_area: string | null
           full_name: string | null
           id: string
+          is_available: boolean | null
           is_email_verified: boolean | null
           location_lat: number | null
           location_lng: number | null
           partner_type: string | null
           phone: string | null
+          rating: number | null
           role: Database["public"]["Enums"]["user_role"] | null
+          service_range: string | null
+          state: string | null
           updated_at: string
+          vehicle_info: string | null
         }
         Insert: {
           address?: string | null
+          availability_schedule?: string | null
           avatar_url?: string | null
+          business_type?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
+          expertise_area?: string | null
           full_name?: string | null
           id: string
+          is_available?: boolean | null
           is_email_verified?: boolean | null
           location_lat?: number | null
           location_lng?: number | null
           partner_type?: string | null
           phone?: string | null
+          rating?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          service_range?: string | null
+          state?: string | null
           updated_at?: string
+          vehicle_info?: string | null
         }
         Update: {
           address?: string | null
+          availability_schedule?: string | null
           avatar_url?: string | null
+          business_type?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
+          expertise_area?: string | null
           full_name?: string | null
           id?: string
+          is_available?: boolean | null
           is_email_verified?: boolean | null
           location_lat?: number | null
           location_lng?: number | null
           partner_type?: string | null
           phone?: string | null
+          rating?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          service_range?: string | null
+          state?: string | null
           updated_at?: string
+          vehicle_info?: string | null
         }
         Relationships: []
       }
@@ -225,34 +378,91 @@ export type Database = {
       }
       sos_alerts: {
         Row: {
+          assigned_partner_id: string | null
+          contact_number: string | null
           created_at: string
+          emergency_type: string | null
+          eta_minutes: number | null
           id: string
           location_lat: number
           location_lng: number
           nearest_partner_id: string | null
+          response_notes: string | null
           status: string | null
           timestamp: string
           user_id: string
         }
         Insert: {
+          assigned_partner_id?: string | null
+          contact_number?: string | null
           created_at?: string
+          emergency_type?: string | null
+          eta_minutes?: number | null
           id?: string
           location_lat: number
           location_lng: number
           nearest_partner_id?: string | null
+          response_notes?: string | null
           status?: string | null
           timestamp?: string
           user_id: string
         }
         Update: {
+          assigned_partner_id?: string | null
+          contact_number?: string | null
           created_at?: string
+          emergency_type?: string | null
+          eta_minutes?: number | null
           id?: string
           location_lat?: number
           location_lng?: number
           nearest_partner_id?: string | null
+          response_notes?: string | null
           status?: string | null
           timestamp?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      workout_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          difficulty_level: string | null
+          duration_weeks: number | null
+          equipment_needed: string[] | null
+          id: string
+          is_active: boolean | null
+          plan_name: string
+          target_muscle_groups: string[] | null
+          trainer_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          difficulty_level?: string | null
+          duration_weeks?: number | null
+          equipment_needed?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          plan_name: string
+          target_muscle_groups?: string[] | null
+          trainer_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          difficulty_level?: string | null
+          duration_weeks?: number | null
+          equipment_needed?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          plan_name?: string
+          target_muscle_groups?: string[] | null
+          trainer_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -264,7 +474,16 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      user_role: "user" | "partner"
+      user_role:
+        | "user"
+        | "partner"
+        | "ambulance_driver"
+        | "elder_advisor"
+        | "health_advisor"
+        | "restaurant_partner"
+        | "gym_trainer"
+        | "insurance_agent"
+        | "health_company"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -392,7 +611,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_role: ["user", "partner"],
+      user_role: [
+        "user",
+        "partner",
+        "ambulance_driver",
+        "elder_advisor",
+        "health_advisor",
+        "restaurant_partner",
+        "gym_trainer",
+        "insurance_agent",
+        "health_company",
+      ],
     },
   },
 } as const

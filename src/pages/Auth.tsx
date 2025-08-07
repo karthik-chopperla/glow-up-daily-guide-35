@@ -72,17 +72,10 @@ const Auth = () => {
       if (error) {
         setError(error.message);
       } else {
-        if (isEmail) {
-          toast({
-            title: "Account created!",
-            description: "Please check your email to verify your account.",
-          });
-        } else {
-          toast({
-            title: "Account created!",
-            description: "You can now sign in with your phone number.",
-          });
-        }
+        toast({
+          title: "Account created successfully!",
+          description: "Please check your email to verify your account before signing in.",
+        });
       }
     } catch (err) {
       setError("An error occurred during sign up");
@@ -107,7 +100,13 @@ const Auth = () => {
     const { error } = await signIn(loginIdentifier, password);
     
     if (error) {
-      setError(error.message);
+      if (error.message.includes("Invalid login credentials")) {
+        setError("Invalid credentials.");
+      } else if (error.message.includes("Email not confirmed")) {
+        setError("Email not confirmed. Please verify your email address.");
+      } else {
+        setError(error.message);
+      }
     } else {
       // Check user role and redirect accordingly
       const { data: profile } = await supabase
@@ -121,7 +120,7 @@ const Auth = () => {
         description: "You have successfully signed in.",
       });
       
-      if (profile?.role === 'partner') {
+      if (profile?.role && profile.role !== 'user') {
         navigate("/partner-home");
       } else {
         navigate("/user-home");
@@ -237,7 +236,7 @@ const Auth = () => {
                   <RadioGroup 
                     value={userRole} 
                     onValueChange={(value: 'user' | 'partner') => setUserRole(value)}
-                    className="flex space-x-4"
+                    className="flex flex-col space-y-2"
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="user" id="user-role" />
@@ -245,7 +244,7 @@ const Auth = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="partner" id="partner-role" />
-                      <Label htmlFor="partner-role">Partner (Doctor/Hospital)</Label>
+                      <Label htmlFor="partner-role">Partner / Collaborator</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -301,9 +300,13 @@ const Auth = () => {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="doctor">Doctor</SelectItem>
-                            <SelectItem value="hospital">Hospital</SelectItem>
-                            <SelectItem value="ambulance">Ambulance</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="ambulance_driver">Ambulance Driver</SelectItem>
+                            <SelectItem value="elder_advisor">Expert Elder Advisor</SelectItem>
+                            <SelectItem value="health_advisor">Health Advisor</SelectItem>
+                            <SelectItem value="restaurant_partner">Restaurant Partner</SelectItem>
+                            <SelectItem value="gym_trainer">Gym Trainer</SelectItem>
+                            <SelectItem value="insurance_agent">Insurance Company Agent</SelectItem>
+                            <SelectItem value="health_company">Direct Health Company</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
