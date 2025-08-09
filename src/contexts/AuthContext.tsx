@@ -17,8 +17,8 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (phoneNumber: string, password: string, metadata?: any) => Promise<{ error: any }>;
+  signIn: (phoneNumber: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -86,19 +86,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription?.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, metadata?: any) => {
-    const redirectUrl = `${window.location.origin}/`;
+  const signUp = async (phoneNumber: string, password: string, metadata?: any) => {
+    // Use phone number as email for Supabase auth (phone@health.app format)
+    const email = `${phoneNumber.replace(/\D/g, '')}@health.app`;
     
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
         data: {
+          phone_number: phoneNumber,
           full_name: metadata?.full_name || metadata?.name || '',
           name: metadata?.name || metadata?.full_name || '',
           role: metadata?.role || 'user',
-          phone: metadata?.phone,
           partner_type: metadata?.partner_type,
           address: metadata?.address,
           location_lat: metadata?.location_lat,
@@ -109,7 +109,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (phoneNumber: string, password: string) => {
+    // Convert phone number to email format
+    const email = `${phoneNumber.replace(/\D/g, '')}@health.app`;
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,

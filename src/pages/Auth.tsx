@@ -1,44 +1,48 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Heart, Phone, Mail } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+const PARTNER_TYPES = [
+  { value: 'home_remedies_expert', label: 'Home Remedies Expert' },
+  { value: 'elder_advisor', label: 'Elder Advisor' },
+  { value: 'hospital', label: 'Hospital' },
+  { value: 'private_doctor', label: 'Private Doctor' },
+  { value: 'medical_shop', label: 'Medical Shop' },
+  { value: 'pharmacy_dealership', label: 'Pharmacy Dealership' },
+  { value: 'mental_health_support', label: 'Mental Health Support' },
+  { value: 'in_home_nursing', label: 'In-Home Nursing' },
+  { value: 'pregnancy_care_plan', label: 'Pregnancy Care Plan' },
+  { value: 'diet_plan_advisor', label: 'Diet Plan Advisor' },
+  { value: 'fitness_recovery_advisor', label: 'Fitness Recovery Advisor' },
+  { value: 'health_insurance_agent', label: 'Health Insurance Agent' },
+  { value: 'restaurant', label: 'Restaurant' },
+  { value: 'catering_service', label: 'Catering Service' },
+  { value: 'hotel', label: 'Hotel' },
+  { value: 'cloud_kitchen', label: 'Cloud Kitchen' },
+  { value: 'omlens_driver', label: 'Omlens Driver' }
+];
+
+const CITIES = ['Eluru', 'Bewaram', 'Palkollu', 'Vijayawada', 'Vizag'];
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [userRole, setUserRole] = useState<'user' | 'partner'>('user');
   const [partnerType, setPartnerType] = useState('');
-  const [address, setAddress] = useState('');
-  const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [city, setCity] = useState('');
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [userName, setUserName] = useState('');
   const { signUp, signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (userRole === 'partner' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        (error) => console.error("Location error:", error)
-      );
-    }
-  }, [userRole]);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,36 +50,30 @@ const Auth = () => {
     setError("");
 
     const formData = new FormData(e.currentTarget);
-    const identifier = formData.get("identifier") as string;
+    const phoneNumber = formData.get("phoneNumber") as string;
     const password = formData.get("password") as string;
     const name = formData.get("name") as string;
-    const phone = formData.get("phone") as string;
 
-    // Determine if identifier is email or phone
-    const isEmail = authMethod === 'email' || identifier.includes('@');
-    
     try {
-      const { error } = await signUp(
-        isEmail ? identifier : `${identifier}@temp.com`, 
-        password, 
-        { 
-          full_name: name,
-          role: userRole,
-          phone: phone || identifier,
-          partner_type: userRole === 'partner' ? partnerType : null,
-          address: userRole === 'partner' ? address : null,
-          location_lat: location?.lat,
-          location_lng: location?.lng
-        }
-      );
+      const { error } = await signUp(phoneNumber, password, {
+        full_name: name,
+        role: userRole === 'partner' ? partnerType : 'user',
+        phone_number: phoneNumber,
+        city: city,
+      });
       
       if (error) {
         setError(error.message);
       } else {
         toast({
-          title: "Account created successfully!",
-          description: "Please check your email to verify your account before signing in.",
+          title: "Account created successfully",
+          description: "Welcome to your health platform!",
         });
+        setUserName(name);
+        setShowWelcome(true);
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
       }
     } catch (err) {
       setError("An error occurred during sign up");
@@ -90,57 +88,60 @@ const Auth = () => {
     setError("");
 
     const formData = new FormData(e.currentTarget);
-    const identifier = formData.get("identifier") as string;
+    const phoneNumber = formData.get("phoneNumber") as string;
     const password = formData.get("password") as string;
 
-    // Determine if identifier is email or phone
-    const isEmail = identifier.includes('@');
-    const loginIdentifier = isEmail ? identifier : `${identifier}@temp.com`;
-
-    const { error } = await signIn(loginIdentifier, password);
+    const { error } = await signIn(phoneNumber, password);
     
     if (error) {
-      if (error.message.includes("Invalid login credentials")) {
-        setError("Invalid credentials.");
-      } else if (error.message.includes("Email not confirmed")) {
-        setError("Email not confirmed. Please verify your email address.");
-      } else {
-        setError(error.message);
-      }
+      setError(error.message);
     } else {
-      // Check user role and redirect accordingly
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
-      
-      if (profile?.role && profile.role !== 'user') {
-        navigate("/partner-home");
-      } else {
-        navigate("/user-home");
+      // Try to show welcome message
+      try {
+        const formData2 = new FormData(e.currentTarget);
+        const nameFromForm = formData2.get("name") as string;
+        if (nameFromForm) {
+          setUserName(nameFromForm);
+          setShowWelcome(true);
+          setTimeout(() => {
+            navigate('/');
+          }, 2000);
+        } else {
+          navigate('/');
+        }
+      } catch {
+        navigate('/');
       }
     }
     
     setIsLoading(false);
   };
 
+  if (showWelcome) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary/10 to-secondary/10 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-3xl font-bold text-primary mb-4">
+            Welcome {userName}!
+          </div>
+          <div className="text-muted-foreground">
+            Redirecting to your dashboard...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-secondary/20 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-primary/10 to-secondary/10 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="bg-primary rounded-full p-3">
-              <Heart className="h-6 w-6 text-primary-foreground" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl font-bold">Welcome to Health Mate</CardTitle>
-          <CardDescription>Your personal health companion</CardDescription>
+          <CardTitle className="text-2xl font-bold text-primary">
+            Your Health One Tap Away
+          </CardTitle>
+          <CardDescription>
+            Join our medical platform for comprehensive healthcare
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
@@ -149,213 +150,132 @@ const Auth = () => {
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="signin">
-              <div className="space-y-4">
-                <RadioGroup 
-                  value={authMethod} 
-                  onValueChange={(value: 'email' | 'phone') => setAuthMethod(value)}
-                  className="flex justify-center space-x-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="email" id="email-signin" />
-                    <Label htmlFor="email-signin" className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" /> Email
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="phone" id="phone-signin" />
-                    <Label htmlFor="phone-signin" className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" /> Phone
-                    </Label>
-                  </div>
-                </RadioGroup>
-                
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-identifier">
-                      {authMethod === 'email' ? 'Email' : 'Phone Number'}
-                    </Label>
-                    <Input
-                      id="signin-identifier"
-                      name="identifier"
-                      type={authMethod === 'email' ? 'email' : 'tel'}
-                      placeholder={authMethod === 'email' ? 'Enter your email' : 'Enter your phone number'}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      name="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Signing In..." : "Sign In"}
-                  </Button>
-                </form>
-              </div>
+            <TabsContent value="signin" className="space-y-4">
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signin-phone">Phone Number</Label>
+                  <Input
+                    id="signin-phone"
+                    name="phoneNumber"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signin-password">Password</Label>
+                  <Input
+                    id="signin-password"
+                    name="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    required
+                  />
+                </div>
+                {error && (
+                  <p className="text-sm text-destructive">{error}</p>
+                )}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Signing in..." : "Sign In"}
+                </Button>
+              </form>
             </TabsContent>
             
-            <TabsContent value="signup">
-              <div className="space-y-4">
-                <RadioGroup 
-                  value={authMethod} 
-                  onValueChange={(value: 'email' | 'phone') => setAuthMethod(value)}
-                  className="flex justify-center space-x-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="email" id="email-signup" />
-                    <Label htmlFor="email-signup" className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" /> Email
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="phone" id="phone-signup" />
-                    <Label htmlFor="phone-signup" className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" /> Phone
-                    </Label>
-                  </div>
-                </RadioGroup>
-
+            <TabsContent value="signup" className="space-y-4">
+              <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Input
+                    id="signup-name"
+                    name="name"
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-phone">Phone Number</Label>
+                  <Input
+                    id="signup-phone"
+                    name="phoneNumber"
+                    type="tel"
+                    placeholder="Enter your phone number"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Password</Label>
+                  <Input
+                    id="signup-password"
+                    name="password"
+                    type="password"
+                    placeholder="Create a password"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-3">
                   <Label>Account Type</Label>
                   <RadioGroup 
                     value={userRole} 
                     onValueChange={(value: 'user' | 'partner') => setUserRole(value)}
-                    className="flex flex-col space-y-2"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="user" id="user-role" />
-                      <Label htmlFor="user-role">User</Label>
+                      <RadioGroupItem value="user" id="user" />
+                      <Label htmlFor="user">User</Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="partner" id="partner-role" />
-                      <Label htmlFor="partner-role">Partner / Collaborator</Label>
+                      <RadioGroupItem value="partner" id="partner" />
+                      <Label htmlFor="partner">Partner/Collaborator</Label>
                     </div>
                   </RadioGroup>
                 </div>
-                
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
-                    <Input
-                      id="signup-name"
-                      name="name"
-                      type="text"
-                      placeholder="Enter your full name"
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-identifier">
-                      {authMethod === 'email' ? 'Email' : 'Phone Number'}
-                    </Label>
-                    <Input
-                      id="signup-identifier"
-                      name="identifier"
-                      type={authMethod === 'email' ? 'email' : 'tel'}
-                      placeholder={authMethod === 'email' ? 'Enter your email' : 'Enter your phone number'}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  
-                  {authMethod === 'phone' && (
+
+                {userRole === 'partner' && (
+                  <>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-phone">Phone Number</Label>
-                      <Input
-                        id="signup-phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="Enter your phone number"
-                        required
-                        disabled={isLoading}
-                      />
+                      <Label>Partner Role</Label>
+                      <Select value={partnerType} onValueChange={setPartnerType}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PARTNER_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  )}
-                  
-                  {userRole === 'partner' && (
-                    <>
-                      <div className="space-y-2">
-                        <Label htmlFor="partner-type">Partner Type</Label>
-                        <Select value={partnerType} onValueChange={setPartnerType} required>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select partner type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="doctor">Doctor</SelectItem>
-                            <SelectItem value="ambulance_driver">Ambulance Driver</SelectItem>
-                            <SelectItem value="elder_advisor">Expert Elder Advisor</SelectItem>
-                            <SelectItem value="health_advisor">Health Advisor</SelectItem>
-                            <SelectItem value="restaurant_partner">Restaurant Partner</SelectItem>
-                            <SelectItem value="gym_trainer">Gym Trainer</SelectItem>
-                            <SelectItem value="insurance_agent">Insurance Company Agent</SelectItem>
-                            <SelectItem value="health_company">Direct Health Company</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="address">Address</Label>
-                        <Input
-                          id="address"
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                          placeholder="Enter your address"
-                          required
-                          disabled={isLoading}
-                        />
-                      </div>
-                      
-                      {location && (
-                        <div className="text-sm text-muted-foreground">
-                          Location detected: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-                        </div>
-                      )}
-                    </>
-                  )}
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      name="password"
-                      type="password"
-                      placeholder="Create a password"
-                      required
-                      disabled={isLoading}
-                      minLength={6}
-                    />
-                  </div>
-                  
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating Account..." : "Create Account"}
-                  </Button>
-                </form>
-              </div>
+                    <div className="space-y-2">
+                      <Label>City</Label>
+                      <Select value={city} onValueChange={setCity}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your city" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CITIES.map((cityOption) => (
+                            <SelectItem key={cityOption} value={cityOption}>
+                              {cityOption}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+                
+                {error && (
+                  <p className="text-sm text-destructive">{error}</p>
+                )}
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={isLoading || (userRole === 'partner' && (!partnerType || !city))}
+                >
+                  {isLoading ? "Creating account..." : "Sign Up"}
+                </Button>
+              </form>
             </TabsContent>
           </Tabs>
         </CardContent>
