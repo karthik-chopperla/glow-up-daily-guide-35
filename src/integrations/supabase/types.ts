@@ -313,7 +313,6 @@ export type Database = {
           city: string | null
           created_at: string
           education: string | null
-          email: string | null
           expertise_area: string | null
           full_name: string | null
           hospital_affiliation: string | null
@@ -324,7 +323,6 @@ export type Database = {
           location_lng: number | null
           partner_type: string | null
           phone: string | null
-          phone_number: string | null
           rating: number | null
           role: Database["public"]["Enums"]["user_role"] | null
           service_charge: number | null
@@ -345,7 +343,6 @@ export type Database = {
           city?: string | null
           created_at?: string
           education?: string | null
-          email?: string | null
           expertise_area?: string | null
           full_name?: string | null
           hospital_affiliation?: string | null
@@ -356,7 +353,6 @@ export type Database = {
           location_lng?: number | null
           partner_type?: string | null
           phone?: string | null
-          phone_number?: string | null
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
           service_charge?: number | null
@@ -377,7 +373,6 @@ export type Database = {
           city?: string | null
           created_at?: string
           education?: string | null
-          email?: string | null
           expertise_area?: string | null
           full_name?: string | null
           hospital_affiliation?: string | null
@@ -388,7 +383,6 @@ export type Database = {
           location_lng?: number | null
           partner_type?: string | null
           phone?: string | null
-          phone_number?: string | null
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
           service_charge?: number | null
