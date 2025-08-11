@@ -8,6 +8,8 @@ import SupabaseConnectionAlert from "@/components/SupabaseConnectionAlert";
 export interface User {
   id: string;
   email: string;
+  phone?: string;
+  full_name?: string;
   name?: string;
   avatar?: string;
 }

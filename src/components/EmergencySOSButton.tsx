@@ -9,7 +9,7 @@ import { Shield, MapPin, Phone, Loader2 } from "lucide-react";
 
 interface Driver {
   id: string;
-  name: string;
+  full_name: string;
   phone_number: string;
   distance_km: number;
 }
@@ -37,7 +37,7 @@ export const EmergencySOSButton = () => {
       // Get all omlens drivers from profiles
       const { data: drivers, error } = await supabase
         .from('profiles')
-        .select('id, name, phone_number, location_lat, location_lng')
+        .select('id, full_name, phone_number, location_lat, location_lng')
         .eq('role', 'omlens_driver');
 
       if (error) throw error;
@@ -50,7 +50,9 @@ export const EmergencySOSButton = () => {
       const driversWithDistance = drivers
         .filter(driver => driver.location_lat && driver.location_lng)
         .map(driver => ({
-          ...driver,
+          id: driver.id,
+          full_name: driver.full_name || 'Driver',
+          phone_number: driver.phone_number || '',
           distance_km: calculateDistance(
             userLat, 
             userLng, 
@@ -123,10 +125,11 @@ export const EmergencySOSButton = () => {
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
+          user_id: user.id,
           partner_id: nearest.id,
           type: 'emergency',
           title: 'Emergency SOS Alert',
-          message: `Emergency request from ${user.name || 'User'} - Distance: ${nearest.distance_km.toFixed(1)}km`,
+          message: `Emergency request from ${user.name || user.full_name || user.phone || 'User'} - Distance: ${nearest.distance_km.toFixed(1)}km`,
           is_read: false
         });
 
@@ -187,7 +190,7 @@ export const EmergencySOSButton = () => {
               <AlertDescription className="text-white">
                 <div className="space-y-1">
                   <p className="font-semibold">Nearest Ambulance:</p>
-                  <p>Driver: {nearestDriver.name}</p>
+                  <p>Driver: {nearestDriver.full_name}</p>
                   <p>Distance: {nearestDriver.distance_km.toFixed(1)} km away</p>
                   <p className="flex items-center">
                     <Phone className="h-3 w-3 mr-1" />

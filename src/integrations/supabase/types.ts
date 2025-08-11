@@ -24,6 +24,7 @@ export type Database = {
           location_preference: string | null
           message: string | null
           notes: string | null
+          notification_id: string | null
           notification_sent: boolean | null
           partner_id: string | null
           service_type: string | null
@@ -42,6 +43,7 @@ export type Database = {
           location_preference?: string | null
           message?: string | null
           notes?: string | null
+          notification_id?: string | null
           notification_sent?: boolean | null
           partner_id?: string | null
           service_type?: string | null
@@ -60,6 +62,7 @@ export type Database = {
           location_preference?: string | null
           message?: string | null
           notes?: string | null
+          notification_id?: string | null
           notification_sent?: boolean | null
           partner_id?: string | null
           service_type?: string | null
@@ -263,17 +266,57 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          partner_id: string | null
+          title: string
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          partner_id?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          partner_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
+          age: number | null
           availability_schedule: string | null
           avatar_url: string | null
+          booking_price: number | null
           business_type: string | null
           city: string | null
           created_at: string
+          education: string | null
           email: string | null
           expertise_area: string | null
           full_name: string | null
+          hospital_affiliation: string | null
           id: string
           is_available: boolean | null
           is_email_verified: boolean | null
@@ -281,23 +324,31 @@ export type Database = {
           location_lng: number | null
           partner_type: string | null
           phone: string | null
+          phone_number: string | null
           rating: number | null
           role: Database["public"]["Enums"]["user_role"] | null
+          service_charge: number | null
           service_range: string | null
           state: string | null
           updated_at: string
           vehicle_info: string | null
+          work_description: string | null
+          years_experience: number | null
         }
         Insert: {
           address?: string | null
+          age?: number | null
           availability_schedule?: string | null
           avatar_url?: string | null
+          booking_price?: number | null
           business_type?: string | null
           city?: string | null
           created_at?: string
+          education?: string | null
           email?: string | null
           expertise_area?: string | null
           full_name?: string | null
+          hospital_affiliation?: string | null
           id: string
           is_available?: boolean | null
           is_email_verified?: boolean | null
@@ -305,23 +356,31 @@ export type Database = {
           location_lng?: number | null
           partner_type?: string | null
           phone?: string | null
+          phone_number?: string | null
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          service_charge?: number | null
           service_range?: string | null
           state?: string | null
           updated_at?: string
           vehicle_info?: string | null
+          work_description?: string | null
+          years_experience?: number | null
         }
         Update: {
           address?: string | null
+          age?: number | null
           availability_schedule?: string | null
           avatar_url?: string | null
+          booking_price?: number | null
           business_type?: string | null
           city?: string | null
           created_at?: string
+          education?: string | null
           email?: string | null
           expertise_area?: string | null
           full_name?: string | null
+          hospital_affiliation?: string | null
           id?: string
           is_available?: boolean | null
           is_email_verified?: boolean | null
@@ -329,12 +388,16 @@ export type Database = {
           location_lng?: number | null
           partner_type?: string | null
           phone?: string | null
+          phone_number?: string | null
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
+          service_charge?: number | null
           service_range?: string | null
           state?: string | null
           updated_at?: string
           vehicle_info?: string | null
+          work_description?: string | null
+          years_experience?: number | null
         }
         Relationships: []
       }
@@ -378,9 +441,11 @@ export type Database = {
       }
       sos_alerts: {
         Row: {
+          assigned_driver_id: string | null
           assigned_partner_id: string | null
           contact_number: string | null
           created_at: string
+          distance_km: number | null
           emergency_type: string | null
           eta_minutes: number | null
           id: string
@@ -393,9 +458,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assigned_driver_id?: string | null
           assigned_partner_id?: string | null
           contact_number?: string | null
           created_at?: string
+          distance_km?: number | null
           emergency_type?: string | null
           eta_minutes?: number | null
           id?: string
@@ -408,9 +475,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assigned_driver_id?: string | null
           assigned_partner_id?: string | null
           contact_number?: string | null
           created_at?: string
+          distance_km?: number | null
           emergency_type?: string | null
           eta_minutes?: number | null
           id?: string
@@ -484,6 +553,22 @@ export type Database = {
         | "gym_trainer"
         | "insurance_agent"
         | "health_company"
+        | "home_remedies_expert"
+        | "hospital"
+        | "private_doctor"
+        | "medical_shop"
+        | "pharmacy_dealership"
+        | "mental_health_support"
+        | "in_home_nursing"
+        | "pregnancy_care_plan"
+        | "diet_plan_advisor"
+        | "fitness_recovery_advisor"
+        | "health_insurance_agent"
+        | "restaurant"
+        | "catering_service"
+        | "hotel"
+        | "cloud_kitchen"
+        | "omlens_driver"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -621,6 +706,22 @@ export const Constants = {
         "gym_trainer",
         "insurance_agent",
         "health_company",
+        "home_remedies_expert",
+        "hospital",
+        "private_doctor",
+        "medical_shop",
+        "pharmacy_dealership",
+        "mental_health_support",
+        "in_home_nursing",
+        "pregnancy_care_plan",
+        "diet_plan_advisor",
+        "fitness_recovery_advisor",
+        "health_insurance_agent",
+        "restaurant",
+        "catering_service",
+        "hotel",
+        "cloud_kitchen",
+        "omlens_driver",
       ],
     },
   },
