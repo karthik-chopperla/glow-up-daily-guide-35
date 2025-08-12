@@ -26,8 +26,6 @@ interface SOSAlert {
   status: string;
   profiles?: {
     full_name: string;
-    email: string;
-    phone?: string;
   };
 }
 
@@ -42,8 +40,6 @@ interface Appointment {
   message?: string;
   profiles?: {
     full_name: string;
-    email: string;
-    phone?: string;
   };
 }
 
@@ -115,7 +111,7 @@ const PartnerHome = () => {
         data.map(async (alert) => {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name, email, phone')
+            .select('full_name')
             .eq('id', alert.user_id)
             .single();
           
@@ -141,7 +137,7 @@ const PartnerHome = () => {
         data.map(async (appointment) => {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name, email, phone')
+            .select('full_name')
             .eq('id', appointment.user_id)
             .single();
           
@@ -246,12 +242,6 @@ const PartnerHome = () => {
                               <Clock className="inline h-3 w-3 mr-1" />
                               {new Date(alert.timestamp).toLocaleString()}
                             </p>
-                            {alert.profiles?.phone && (
-                              <p className="text-sm">
-                                <Phone className="inline h-3 w-3 mr-1" />
-                                {alert.profiles.phone}
-                              </p>
-                            )}
                           </div>
                           <div className="space-x-2">
                             <Button
@@ -327,12 +317,6 @@ const PartnerHome = () => {
                               {new Date(appointment.appointment_time).toLocaleDateString()} at{' '}
                               {new Date(appointment.appointment_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </p>
-                            {appointment.profiles?.phone && (
-                              <p>
-                                <Phone className="inline h-3 w-3 mr-1" />
-                                {appointment.profiles.phone}
-                              </p>
-                            )}
                             {appointment.message && (
                               <p className="italic">"{appointment.message}"</p>
                             )}

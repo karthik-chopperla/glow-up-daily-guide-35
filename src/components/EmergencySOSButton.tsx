@@ -37,7 +37,7 @@ export const EmergencySOSButton = () => {
       // Get all omlens drivers from profiles
       const { data: drivers, error } = await supabase
         .from('profiles')
-        .select('id, full_name, phone_number, location_lat, location_lng')
+        .select('id, full_name, location_lat, location_lng')
         .eq('role', 'omlens_driver');
 
       if (error) throw error;
@@ -52,7 +52,7 @@ export const EmergencySOSButton = () => {
         .map(driver => ({
           id: driver.id,
           full_name: driver.full_name || 'Driver',
-          phone_number: driver.phone_number || '',
+          phone_number: 'Available', // Placeholder since we removed phone from profiles
           distance_km: calculateDistance(
             userLat, 
             userLng, 
@@ -129,7 +129,7 @@ export const EmergencySOSButton = () => {
           partner_id: nearest.id,
           type: 'emergency',
           title: 'Emergency SOS Alert',
-          message: `Emergency request from ${user.name || user.full_name || user.phone || 'User'} - Distance: ${nearest.distance_km.toFixed(1)}km`,
+          message: `Emergency request from ${user.name || user.full_name || 'User'} - Distance: ${nearest.distance_km.toFixed(1)}km`,
           is_read: false
         });
 

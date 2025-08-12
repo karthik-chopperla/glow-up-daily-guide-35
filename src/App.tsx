@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { AppProvider } from "./contexts/AppProvider";
 import Auth from "./pages/Auth";
+import RoleSelection from "./pages/RoleSelection";
+import PartnerDashboard from "./pages/PartnerDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import ChatbotScreen from "./components/screens/ChatbotScreen";
 import SymptomChecker from "./pages/SymptomChecker";
@@ -35,25 +38,6 @@ import SubscriptionPlans from "./pages/SubscriptionPlans";
 
 const queryClient = new QueryClient();
 
-// Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-  
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-  
-  return <>{children}</>;
-};
-
 // Public Route Component (only accessible when not logged in)
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -74,7 +58,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   return (
     <>
@@ -86,12 +70,36 @@ const AppRoutes = () => {
           </PublicRoute>
         } />
         
-        {/* Protected Routes */}
-        <Route path="/" element={
+        {/* Role Selection Route */}
+        <Route path="/role-selection" element={
           <ProtectedRoute>
+            <RoleSelection />
+          </ProtectedRoute>
+        } />
+        
+        {/* Partner Dashboard */}
+        <Route path="/partner-dashboard" element={
+          <ProtectedRoute requireRole="partner">
+            <PartnerDashboard />
+          </ProtectedRoute>
+        } />
+        
+        {/* User Routes */}
+        <Route path="/home" element={
+          <ProtectedRoute requireRole="user">
             <HomeScreen />
           </ProtectedRoute>
         } />
+        
+        {/* Protected Routes (accessible to both users and partners) */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            {profile?.role === 'user' ? <HomeScreen /> : 
+             profile?.role === 'partner' ? <Navigate to="/partner-dashboard" /> : 
+             <Navigate to="/role-selection" />}
+          </ProtectedRoute>
+        } />
+        
         <Route path="/services" element={
           <ProtectedRoute>
             <ServicesScreen />
@@ -193,20 +201,20 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } />
         <Route path="/user-home" element={
-          <ProtectedRoute>
+          <ProtectedRoute requireRole="user">
             <UserHome />
           </ProtectedRoute>
         } />
         <Route path="/partner-home" element={
-          <ProtectedRoute>
+          <ProtectedRoute requireRole="partner">
             <PartnerHome />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       
-      {/* Only show navigation when user is logged in */}
-      {user && (
+      {/* Only show navigation when user is logged in and has a role */}
+      {user && profile?.role && (
         <>
           <BottomTabNav />
           <FabSOS />
