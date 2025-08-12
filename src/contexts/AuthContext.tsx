@@ -33,6 +33,7 @@ interface AuthContextValue {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   setRole: (role: 'user' | 'partner', serviceType?: string) => Promise<{ error: any }>;
+  setServiceType: (serviceType: string) => Promise<{ error: any }>;
   checkProfile: () => Promise<UserProfile | null>;
 }
 
@@ -201,6 +202,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const setServiceType = async (serviceType: string) => {
+    if (!user) {
+      return { error: { message: 'User not authenticated' } };
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ service_type: serviceType })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error setting service type:', error);
+        return { error };
+      }
+
+      // Refresh profile data
+      const updatedProfile = await fetchProfile(user.id);
+      setProfile(updatedProfile);
+
+      return { error: null };
+    } catch (error) {
+      console.error('Error setting service type:', error);
+      return { error };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -221,7 +249,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signInWithGoogle, 
       signOut, 
       setRole,
-      checkProfile 
+      setServiceType,
+      checkProfile
     }}>
       {children}
     </AuthContext.Provider>

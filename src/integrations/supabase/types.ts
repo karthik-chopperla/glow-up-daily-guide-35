@@ -327,6 +327,7 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"] | null
           service_charge: number | null
           service_range: string | null
+          service_type: string | null
           state: string | null
           updated_at: string
           vehicle_info: string | null
@@ -357,6 +358,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"] | null
           service_charge?: number | null
           service_range?: string | null
+          service_type?: string | null
           state?: string | null
           updated_at?: string
           vehicle_info?: string | null
@@ -387,6 +389,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"] | null
           service_charge?: number | null
           service_range?: string | null
+          service_type?: string | null
           state?: string | null
           updated_at?: string
           vehicle_info?: string | null

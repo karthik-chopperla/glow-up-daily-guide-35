@@ -9,25 +9,27 @@ import { useToast } from '@/hooks/use-toast';
 
 const SERVICE_TYPES = [
   { value: 'home_remedies_expert', label: 'Home Remedies Expert', category: 'Health' },
-  { value: 'hospital', label: 'Hospital Owner', category: 'Health' },
+  { value: 'hospital_owner', label: 'Hospital Owner', category: 'Health' },
+  { value: 'doctor', label: 'Doctor', category: 'Health' },
   { value: 'private_doctor', label: 'Private Doctor', category: 'Health' },
+  { value: 'online_doctor', label: 'Online Doctor', category: 'Health' },
+  { value: 'pharmacy_shop', label: 'Pharmacy Shop', category: 'Health' },
   { value: 'medical_shop', label: 'Medical Shop', category: 'Health' },
-  { value: 'pharmacy_dealership', label: 'Pharmacy Dealership', category: 'Health' },
   { value: 'mental_health_support', label: 'Mental Health Support', category: 'Health' },
-  { value: 'in_home_nursing', label: 'Home Nursing', category: 'Health' },
-  { value: 'pregnancy_care_plan', label: 'Pregnancy Care', category: 'Health' },
+  { value: 'home_nursing', label: 'Home Nursing', category: 'Health' },
+  { value: 'pregnancy_care', label: 'Pregnancy Care', category: 'Health' },
+  { value: 'gynecologist', label: 'Gynecologist', category: 'Health' },
   { value: 'diet_plan_advisor', label: 'Diet Plan Advisor', category: 'Health' },
   { value: 'fitness_recovery_advisor', label: 'Fitness Recovery Advisor', category: 'Health' },
   { value: 'health_insurance_agent', label: 'Health Insurance Agent', category: 'Health' },
-  { value: 'restaurant', label: 'Restaurant Owner', category: 'Food' },
-  { value: 'catering_service', label: 'Catering Service', category: 'Food' },
-  { value: 'hotel', label: 'Hotel', category: 'Food' },
-  { value: 'cloud_kitchen', label: 'Cloud Kitchen', category: 'Food' },
-  { value: 'omlens_driver', label: 'Emergency Driver', category: 'Emergency' },
+  { value: 'restaurant_owner', label: 'Restaurant Owner', category: 'Food' },
+  { value: 'torrent_owner', label: 'Torrent Owner', category: 'Food' },
+  { value: 'emergency_sos', label: 'Emergency SOS', category: 'Emergency' },
+  { value: 'ambulance_driver', label: 'Ambulance Driver', category: 'Emergency' },
 ];
 
 const RoleSelection = () => {
-  const { user, profile, setRole, loading } = useAuth();
+  const { user, profile, setRole, setServiceType, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -45,8 +47,11 @@ const RoleSelection = () => {
     if (profile?.role) {
       if (profile.role === 'user') {
         navigate('/home');
-      } else {
-        navigate('/partner-dashboard');
+      } else if (profile.role === 'partner') {
+        if (profile.service_type) {
+          navigate('/partner-dashboard');
+        }
+        // If partner but no service_type, stay on role selection for service selection
       }
     }
   }, [user, profile, loading, navigate]);
@@ -60,9 +65,38 @@ const RoleSelection = () => {
     }
   };
 
-  const handleServiceSelection = (serviceType: string) => {
+  const handleServiceSelection = async (serviceType: string) => {
     setSelectedService(serviceType);
-    handleSubmit('partner', serviceType);
+    setIsLoading(true);
+
+    try {
+      const { error } = await setServiceType(serviceType);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to set service type. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Service type selected successfully!",
+      });
+
+      // Navigate to partner homepage
+      navigate('/partner-homepage');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async (role: 'user' | 'partner', serviceType?: string) => {
@@ -89,7 +123,9 @@ const RoleSelection = () => {
       if (role === 'user') {
         navigate('/home');
       } else {
-        navigate('/partner-dashboard');
+        // For partners, stay on role selection to choose service type
+        setSelectedRole('partner');
+        setShowServiceSelection(true);
       }
     } catch (error) {
       toast({

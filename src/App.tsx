@@ -8,6 +8,7 @@ import { AppProvider } from "./contexts/AppProvider";
 import Auth from "./pages/Auth";
 import RoleSelection from "./pages/RoleSelection";
 import PartnerDashboard from "./pages/PartnerDashboard";
+import PartnerHomepage from "./pages/PartnerHomepage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import ChatbotScreen from "./components/screens/ChatbotScreen";
@@ -83,6 +84,11 @@ const AppRoutes = () => {
             <PartnerDashboard />
           </ProtectedRoute>
         } />
+        <Route path="/partner-homepage" element={
+          <ProtectedRoute requireRole="partner">
+            <PartnerHomepage />
+          </ProtectedRoute>
+        } />
         
         {/* User Routes */}
         <Route path="/home" element={
@@ -94,9 +100,10 @@ const AppRoutes = () => {
         {/* Protected Routes (accessible to both users and partners) */}
         <Route path="/" element={
           <ProtectedRoute>
-            {profile?.role === 'user' ? <HomeScreen /> : 
-             profile?.role === 'partner' ? <Navigate to="/partner-dashboard" /> : 
-             <Navigate to="/role-selection" />}
+             {profile?.role === 'user' ? <HomeScreen /> : 
+             profile?.role === 'partner' ? (
+               profile?.service_type ? <Navigate to="/partner-homepage" /> : <Navigate to="/role-selection" />
+             ) : <Navigate to="/role-selection" />}
           </ProtectedRoute>
         } />
         
