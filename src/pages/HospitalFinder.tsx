@@ -150,8 +150,12 @@ const HospitalFinder = () => {
       // Calculate distances if user location is available
       const hospitalsWithDistance = hospitalData?.map(hospital => ({
         ...hospital,
-        specialties: Array.isArray(hospital.specialties) ? hospital.specialties : [],
-        facilities: Array.isArray(hospital.facilities) ? hospital.facilities : [],
+        specialties: Array.isArray(hospital.specialties) 
+          ? hospital.specialties.map(s => String(s)) 
+          : [],
+        facilities: Array.isArray(hospital.facilities) 
+          ? hospital.facilities.map(f => String(f)) 
+          : [],
         distance_km: userLocation ? 
           calculateDistance(userLocation.lat, userLocation.lng, hospital.location_lat, hospital.location_lng) : 
           undefined
