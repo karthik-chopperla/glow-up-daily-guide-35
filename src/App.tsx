@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { AppProvider } from "./contexts/AppProvider";
 import Auth from "./pages/Auth";
+import Welcome from "./pages/Welcome";
+import SignUp from "./pages/SignUp";
+import SignIn from "./pages/SignIn";
 import RoleSelection from "./pages/RoleSelection";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import PartnerHomepage from "./pages/PartnerHomepage";
@@ -64,7 +67,22 @@ const AppRoutes = () => {
   return (
     <>
       <Routes>
-        {/* Public Auth Route */}
+        {/* Public Auth Routes */}
+        <Route path="/welcome" element={
+          <PublicRoute>
+            <Welcome />
+          </PublicRoute>
+        } />
+        <Route path="/signup" element={
+          <PublicRoute>
+            <SignUp />
+          </PublicRoute>
+        } />
+        <Route path="/signin" element={
+          <PublicRoute>
+            <SignIn />
+          </PublicRoute>
+        } />
         <Route path="/auth" element={
           <PublicRoute>
             <Auth />
@@ -97,14 +115,18 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } />
         
-        {/* Protected Routes (accessible to both users and partners) */}
+        {/* Root Route - redirects to welcome for unauthenticated users */}
         <Route path="/" element={
-          <ProtectedRoute>
-             {profile?.role === 'user' ? <HomeScreen /> : 
-             profile?.role === 'partner' ? (
-               profile?.service_type ? <Navigate to="/partner-homepage" /> : <Navigate to="/role-selection" />
-             ) : <Navigate to="/role-selection" />}
-          </ProtectedRoute>
+          user ? (
+            <ProtectedRoute>
+              {profile?.role === 'user' ? <HomeScreen /> : 
+              profile?.role === 'partner' ? (
+                profile?.service_type ? <Navigate to="/partner-homepage" /> : <Navigate to="/role-selection" />
+              ) : <Navigate to="/role-selection" />}
+            </ProtectedRoute>
+          ) : (
+            <Navigate to="/welcome" replace />
+          )
         } />
         
         <Route path="/services" element={

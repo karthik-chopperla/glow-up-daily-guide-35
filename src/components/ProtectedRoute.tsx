@@ -19,9 +19,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireRole }
     );
   }
 
-  // If not authenticated, redirect to auth
+  // If not authenticated, redirect to welcome
   if (!user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/welcome" state={{ from: location }} replace />;
   }
 
   // If authenticated but no role, redirect to role selection

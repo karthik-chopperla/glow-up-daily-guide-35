@@ -30,6 +30,8 @@ interface AuthContextValue {
   profile: UserProfile | null;
   session: Session | null;
   loading: boolean;
+  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   setRole: (role: 'user' | 'partner', serviceType?: string) => Promise<{ error: any }>;
@@ -149,6 +151,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription?.unsubscribe();
   }, []);
 
+  const signUp = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+      
+      if (error) {
+        console.error('Error signing up:', error);
+        return { error };
+      }
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Error signing up:', error);
+      return { error };
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('Error signing in:', error);
+        return { error };
+      }
+      
+      return { error: null };
+    } catch (error) {
+      console.error('Error signing in:', error);
+      return { error };
+    }
+  };
+
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -246,6 +289,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       profile, 
       session, 
       loading, 
+      signUp,
+      signIn,
       signInWithGoogle, 
       signOut, 
       setRole,
