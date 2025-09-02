@@ -21,9 +21,9 @@ const SignUp = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // If user is already authenticated, redirect
+    // If user is already authenticated, redirect appropriately
     if (user) {
-      navigate('/');
+      navigate('/role-selection');
     }
   }, [user, navigate]);
 

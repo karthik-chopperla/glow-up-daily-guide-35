@@ -15,16 +15,19 @@ const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   
-  const { signIn, user } = useAuth();
+  const { signIn, user, profile, redirectToRoleDashboard } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // If user is already authenticated, redirect
-    if (user) {
-      navigate('/');
+    // If user is already authenticated with a role, redirect to dashboard
+    if (user && profile?.role) {
+      redirectToRoleDashboard(profile.role);
+    } else if (user && !profile?.role) {
+      // User exists but no role selected, go to role selection
+      navigate('/role-selection');
     }
-  }, [user, navigate]);
+  }, [user, profile, navigate, redirectToRoleDashboard]);
 
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
@@ -73,7 +76,7 @@ const SignIn = () => {
         description: "You've successfully signed in to Health Mate.",
       });
 
-      // User will be automatically redirected by auth state change
+      // The auth state change will handle redirection based on role
     } catch (error: any) {
       setErrors({ general: error.message || "Failed to sign in" });
       setIsLoading(false);

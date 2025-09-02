@@ -39,6 +39,7 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   setRole: (role: 'user' | 'partner', partnerData?: {services: string[], type: string}) => Promise<{ error: any }>;
   checkProfile: () => Promise<UserProfile | null>;
+  redirectToRoleDashboard: (role: 'user' | 'partner') => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -248,6 +249,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const redirectToRoleDashboard = (role: 'user' | 'partner') => {
+    if (typeof window !== 'undefined') {
+      if (role === 'user') {
+        window.location.href = '/user-home';
+      } else if (role === 'partner') {
+        window.location.href = '/partner-home';
+      }
+    }
+  };
+
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -271,7 +282,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signInWithGoogle, 
       signOut, 
       setRole,
-      checkProfile
+      checkProfile,
+      redirectToRoleDashboard
     }}>
       {children}
     </AuthContext.Provider>

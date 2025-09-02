@@ -29,7 +29,7 @@ const PARTNER_TYPES = [
 ];
 
 const RoleSelection = () => {
-  const { user, profile, setRole, loading } = useAuth();
+  const { user, profile, setRole, loading, redirectToRoleDashboard } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -40,19 +40,16 @@ const RoleSelection = () => {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate('/auth');
+      navigate('/signin');
       return;
     }
 
-    // If user already has a role, redirect to appropriate dashboard
+    // CRITICAL: If user already has a role, redirect immediately to appropriate dashboard
+    // This ensures we skip role selection on future logins
     if (profile?.role) {
-      if (profile.role === 'user') {
-        navigate('/user-home');
-      } else if (profile.role === 'partner') {
-        navigate('/partner-home');
-      }
+      redirectToRoleDashboard(profile.role);
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, profile, loading, navigate, redirectToRoleDashboard]);
 
   const handleRoleSelection = (role: 'user' | 'partner') => {
     if (role === 'user') {
@@ -103,7 +100,8 @@ const RoleSelection = () => {
         description: "Welcome! Your partner account has been set up successfully.",
       });
 
-      navigate('/partner-home');
+      // Redirect to partner dashboard
+      redirectToRoleDashboard('partner');
     } catch (error) {
       toast({
         title: "Error",
@@ -134,8 +132,8 @@ const RoleSelection = () => {
         description: `Welcome! Your account has been set up as ${role === 'user' ? 'a user' : 'a partner'}.`,
       });
 
-      // Navigate to appropriate dashboard
-      navigate('/user-home');
+      // Redirect to user dashboard
+      redirectToRoleDashboard('user');
     } catch (error) {
       toast({
         title: "Error",
@@ -170,10 +168,10 @@ const RoleSelection = () => {
           <Card className="w-full max-w-2xl mx-auto">
             <CardHeader className="text-center">
               <CardTitle className="text-3xl font-bold text-primary">
-                Welcome to Health Mate!
+                Choose Your Role
               </CardTitle>
               <CardDescription className="text-lg">
-                Let's get you started. Please choose your account type:
+                Please select your account type to continue. This step is required to access your dashboard.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
