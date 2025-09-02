@@ -46,9 +46,9 @@ const PartnerHomepage = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-primary">Partner Dashboard</h1>
-              {profile?.service_type && (
+              {profile?.partner_type && (
                 <Badge variant="secondary" className="ml-3">
-                  {serviceTypeLabels[profile.service_type]}
+                  {serviceTypeLabels[profile.partner_type] || profile.partner_type}
                 </Badge>
               )}
             </div>

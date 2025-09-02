@@ -10,7 +10,10 @@ export interface UserProfile {
   full_name?: string;
   avatar_url?: string;
   role?: 'user' | 'partner';
-  service_type?: string;
+  partner_services?: string[];
+  partner_type?: string;
+  contact_info?: any;
+  address?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -34,8 +37,7 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  setRole: (role: 'user' | 'partner', serviceType?: string) => Promise<{ error: any }>;
-  setServiceType: (serviceType: string) => Promise<{ error: any }>;
+  setRole: (role: 'user' | 'partner', partnerData?: {services: string[], type: string}) => Promise<{ error: any }>;
   checkProfile: () => Promise<UserProfile | null>;
 }
 
@@ -206,7 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const setRole = async (role: 'user' | 'partner', serviceType?: string) => {
+  const setRole = async (role: 'user' | 'partner', partnerData?: {services: string[], type: string}) => {
     if (!user) {
       return { error: { message: 'User not authenticated' } };
     }
@@ -218,8 +220,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         full_name: user.full_name || user.name,
       };
 
-      if (role === 'partner' && serviceType) {
-        profileData.service_type = serviceType;
+      if (role === 'partner' && partnerData) {
+        profileData.partner_services = partnerData.services;
+        profileData.partner_type = partnerData.type;
       }
 
       const { error } = await supabase
@@ -245,32 +248,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const setServiceType = async (serviceType: string) => {
-    if (!user) {
-      return { error: { message: 'User not authenticated' } };
-    }
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ service_type: serviceType })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('Error setting service type:', error);
-        return { error };
-      }
-
-      // Refresh profile data
-      const updatedProfile = await fetchProfile(user.id);
-      setProfile(updatedProfile);
-
-      return { error: null };
-    } catch (error) {
-      console.error('Error setting service type:', error);
-      return { error };
-    }
-  };
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -294,7 +271,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signInWithGoogle, 
       signOut, 
       setRole,
-      setServiceType,
       checkProfile
     }}>
       {children}

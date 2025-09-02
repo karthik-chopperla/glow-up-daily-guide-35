@@ -28,6 +28,7 @@ import Fitness from "./pages/Fitness";
 import Insurance from "./pages/Insurance";
 import MyRecords from "./pages/MyRecords";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import HomeScreen from "./pages/HomeScreen";
 import UserHome from "./pages/UserHome";
 import PartnerHome from "./pages/PartnerHome";
@@ -119,10 +120,9 @@ const AppRoutes = () => {
         <Route path="/" element={
           user ? (
             <ProtectedRoute>
-              {profile?.role === 'user' ? <HomeScreen /> : 
-              profile?.role === 'partner' ? (
-                profile?.service_type ? <Navigate to="/partner-homepage" /> : <Navigate to="/role-selection" />
-              ) : <Navigate to="/role-selection" />}
+              {profile?.role === 'user' ? <Navigate to="/user-home" /> : 
+              profile?.role === 'partner' ? <Navigate to="/partner-home" /> : 
+              <Navigate to="/role-selection" />}
             </ProtectedRoute>
           ) : (
             <Navigate to="/welcome" replace />
@@ -237,6 +237,11 @@ const AppRoutes = () => {
         <Route path="/partner-home" element={
           <ProtectedRoute requireRole="partner">
             <PartnerHome />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" />} />

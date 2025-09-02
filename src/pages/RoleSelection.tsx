@@ -7,34 +7,35 @@ import { Badge } from '@/components/ui/badge';
 import { User, Building, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const SERVICE_TYPES = [
-  { value: 'home_remedies_expert', label: 'Home Remedies Expert', category: 'Health' },
-  { value: 'hospital_owner', label: 'Hospital Owner', category: 'Health' },
-  { value: 'doctor', label: 'Doctor', category: 'Health' },
-  { value: 'private_doctor', label: 'Private Doctor', category: 'Health' },
-  { value: 'online_doctor', label: 'Online Doctor', category: 'Health' },
-  { value: 'pharmacy_shop', label: 'Pharmacy Shop', category: 'Health' },
-  { value: 'medical_shop', label: 'Medical Shop', category: 'Health' },
-  { value: 'mental_health_support', label: 'Mental Health Support', category: 'Health' },
-  { value: 'home_nursing', label: 'Home Nursing', category: 'Health' },
-  { value: 'pregnancy_care', label: 'Pregnancy Care', category: 'Health' },
-  { value: 'gynecologist', label: 'Gynecologist', category: 'Health' },
-  { value: 'diet_plan_advisor', label: 'Diet Plan Advisor', category: 'Health' },
-  { value: 'fitness_recovery_advisor', label: 'Fitness Recovery Advisor', category: 'Health' },
-  { value: 'health_insurance_agent', label: 'Health Insurance Agent', category: 'Health' },
-  { value: 'restaurant_owner', label: 'Restaurant Owner', category: 'Food' },
-  { value: 'torrent_owner', label: 'Torrent Owner', category: 'Food' },
-  { value: 'emergency_sos', label: 'Emergency SOS', category: 'Emergency' },
-  { value: 'ambulance_driver', label: 'Ambulance Driver', category: 'Emergency' },
+const PARTNER_SERVICES = [
+  'AI Symptom Checker',
+  'Hospital Finder & Cost Comparison',
+  'Expert Elders\' Traditional Advice',
+  'Doctor Consultations',
+  'Emergency SOS',
+  'Smart Medicine Reminders & Intake Tracking',
+  'Refill Alerts & Medicine Price Comparison',
+  'Diet Plan & Food Booking',
+  'Mental Health & Home Nursing',
+  'Pregnancy Care Plan',
+  'Fitness Support',
+  'Insurance Support'
+];
+
+const PARTNER_TYPES = [
+  'hospital',
+  'doctor',
+  'expert'
 ];
 
 const RoleSelection = () => {
-  const { user, profile, setRole, setServiceType, loading } = useAuth();
+  const { user, profile, setRole, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'user' | 'partner' | null>(null);
-  const [selectedService, setSelectedService] = useState<string>('');
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedPartnerType, setSelectedPartnerType] = useState<string>('');
   const [showServiceSelection, setShowServiceSelection] = useState(false);
 
   useEffect(() => {
@@ -46,12 +47,9 @@ const RoleSelection = () => {
     // If user already has a role, redirect to appropriate dashboard
     if (profile?.role) {
       if (profile.role === 'user') {
-        navigate('/home');
+        navigate('/user-home');
       } else if (profile.role === 'partner') {
-        if (profile.service_type) {
-          navigate('/partner-dashboard');
-        }
-        // If partner but no service_type, stay on role selection for service selection
+        navigate('/partner-home');
       }
     }
   }, [user, profile, loading, navigate]);
@@ -65,17 +63,35 @@ const RoleSelection = () => {
     }
   };
 
-  const handleServiceSelection = async (serviceType: string) => {
-    setSelectedService(serviceType);
-    setIsLoading(true);
+  const handleServiceToggle = (service: string) => {
+    setSelectedServices(prev => 
+      prev.includes(service) 
+        ? prev.filter(s => s !== service)
+        : [...prev, service]
+    );
+  };
 
+  const handlePartnerSubmit = async () => {
+    if (!selectedPartnerType || selectedServices.length === 0) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a partner type and at least one service.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const { error } = await setServiceType(serviceType);
+      const { error } = await setRole('partner', {
+        services: selectedServices,
+        type: selectedPartnerType
+      });
 
       if (error) {
         toast({
           title: "Error",
-          description: error.message || "Failed to set service type. Please try again.",
+          description: error.message || "Failed to set up partner account. Please try again.",
           variant: "destructive",
         });
         setIsLoading(false);
@@ -84,11 +100,10 @@ const RoleSelection = () => {
 
       toast({
         title: "Success",
-        description: "Service type selected successfully!",
+        description: "Welcome! Your partner account has been set up successfully.",
       });
 
-      // Navigate to partner homepage
-      navigate('/partner-homepage');
+      navigate('/partner-home');
     } catch (error) {
       toast({
         title: "Error",
@@ -99,11 +114,11 @@ const RoleSelection = () => {
     }
   };
 
-  const handleSubmit = async (role: 'user' | 'partner', serviceType?: string) => {
+  const handleSubmit = async (role: 'user' | 'partner') => {
     setIsLoading(true);
 
     try {
-      const { error } = await setRole(role, serviceType);
+      const { error } = await setRole(role);
 
       if (error) {
         toast({
@@ -120,13 +135,7 @@ const RoleSelection = () => {
       });
 
       // Navigate to appropriate dashboard
-      if (role === 'user') {
-        navigate('/home');
-      } else {
-        // For partners, stay on role selection to choose service type
-        setSelectedRole('partner');
-        setShowServiceSelection(true);
-      }
+      navigate('/user-home');
     } catch (error) {
       toast({
         title: "Error",
@@ -141,7 +150,8 @@ const RoleSelection = () => {
   const handleBack = () => {
     setShowServiceSelection(false);
     setSelectedRole(null);
-    setSelectedService('');
+    setSelectedServices([]);
+    setSelectedPartnerType('');
   };
 
   if (loading) {
@@ -152,13 +162,6 @@ const RoleSelection = () => {
     );
   }
 
-  const groupedServices = SERVICE_TYPES.reduce((acc, service) => {
-    if (!acc[service.category]) {
-      acc[service.category] = [];
-    }
-    acc[service.category].push(service);
-    return acc;
-  }, {} as Record<string, typeof SERVICE_TYPES>);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-secondary/5 flex items-center justify-center p-4">
@@ -221,38 +224,66 @@ const RoleSelection = () => {
                 </Button>
                 <div>
                   <CardTitle className="text-2xl font-bold text-primary">
-                    Select Your Service Category
+                    Complete Your Partner Setup
                   </CardTitle>
                   <CardDescription>
-                    Choose the service that best describes your business
+                    Choose your partner type and select the services you provide
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {Object.entries(groupedServices).map(([category, services]) => (
-                  <div key={category}>
-                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      <Badge variant="outline">{category}</Badge>
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {services.map((service) => (
-                        <Button
-                          key={service.value}
-                          variant={selectedService === service.value ? "default" : "outline"}
-                          className="h-auto p-4 text-left justify-start"
-                          onClick={() => handleServiceSelection(service.value)}
-                          disabled={isLoading}
-                        >
-                          <div>
-                            <div className="font-medium">{service.label}</div>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+            <CardContent className="space-y-6">
+              {/* Partner Type Selection */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Partner Type</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {PARTNER_TYPES.map((type) => (
+                    <Button
+                      key={type}
+                      variant={selectedPartnerType === type ? "default" : "outline"}
+                      className="h-auto p-4 text-left justify-start capitalize"
+                      onClick={() => setSelectedPartnerType(type)}
+                      disabled={isLoading}
+                    >
+                      {type}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Services Selection */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Services You Provide</h3>
+                <p className="text-sm text-muted-foreground">Select all services that apply to your business</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {PARTNER_SERVICES.map((service) => (
+                    <Button
+                      key={service}
+                      variant={selectedServices.includes(service) ? "default" : "outline"}
+                      className="h-auto p-4 text-left justify-start"
+                      onClick={() => handleServiceToggle(service)}
+                      disabled={isLoading}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium">{service}</div>
+                        {selectedServices.includes(service) && (
+                          <Badge variant="secondary" className="ml-auto">Selected</Badge>
+                        )}
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end">
+                <Button 
+                  onClick={handlePartnerSubmit}
+                  disabled={isLoading || !selectedPartnerType || selectedServices.length === 0}
+                  className="px-8"
+                >
+                  {isLoading ? "Setting up..." : "Complete Setup"}
+                </Button>
               </div>
             </CardContent>
           </Card>

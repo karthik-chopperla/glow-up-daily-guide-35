@@ -50,7 +50,7 @@ const PartnerDashboard = () => {
           <div className="flex items-center gap-4">
             <Badge variant="secondary" className="text-sm">
               <Building className="w-4 h-4 mr-1" />
-              {profile?.service_type ? getServiceLabel(profile.service_type) : 'Partner'}
+              {profile?.partner_type ? getServiceLabel(profile.partner_type) : 'Partner'}
             </Badge>
             <Button variant="outline" size="sm" onClick={signOut}>
               <LogOut className="w-4 h-4 mr-2" />
@@ -170,7 +170,7 @@ const PartnerDashboard = () => {
             <CardHeader>
               <CardTitle>Service Management</CardTitle>
               <CardDescription>
-                Tools and features specific to your {profile?.service_type ? getServiceLabel(profile.service_type) : 'service'}
+                Tools and features specific to your {profile?.partner_type ? getServiceLabel(profile.partner_type) : 'service'}
               </CardDescription>
             </CardHeader>
             <CardContent>

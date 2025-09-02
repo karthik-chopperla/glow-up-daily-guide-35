@@ -78,7 +78,8 @@ const SignUp = () => {
         description: "Welcome to Health Mate. Let's set up your profile.",
       });
 
-      // Account created successfully - user will be automatically redirected by auth state change
+      // Navigate to role selection after successful signup
+      navigate('/role-selection');
     } catch (error: any) {
       setErrors({ general: error.message || "Failed to create account" });
       setIsLoading(false);
