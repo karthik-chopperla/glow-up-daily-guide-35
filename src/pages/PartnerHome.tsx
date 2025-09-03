@@ -11,11 +11,20 @@ import {
   Clock, 
   Phone,
   CheckCircle,
-  Bell
+  Bell,
+  Building,
+  Stethoscope,
+  Brain,
+  Settings,
+  LogOut
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from 'react-router-dom';
+import HospitalOnboarding from '@/components/partner/HospitalOnboarding';
+import DoctorOnboarding from '@/components/partner/DoctorOnboarding';
+import ExpertOnboarding from '@/components/partner/ExpertOnboarding';
 
 interface SOSAlert {
   id: string;
@@ -48,13 +57,38 @@ const PartnerHome = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [newAlerts, setNewAlerts] = useState<string[]>([]);
   const [newAppointments, setNewAppointments] = useState<string[]>([]);
-  const { user } = useAuth();
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [onboardingType, setOnboardingType] = useState<'hospital' | 'doctor' | 'expert' | null>(null);
+  const { user, profile, signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchSOSAlerts();
-    fetchAppointments();
-    
+    checkOnboardingStatus();
+    if (profile?.partner_setup_complete) {
+      fetchSOSAlerts();
+      fetchAppointments();
+      setupRealtimeListeners();
+    }
+  }, [user?.id, profile]);
+
+  const checkOnboardingStatus = () => {
+    if (profile && profile.role === 'partner') {
+      if (!profile.partner_setup_complete) {
+        setNeedsOnboarding(true);
+        // Determine onboarding type based on partner_type
+        if (profile.partner_type === 'hospital') {
+          setOnboardingType('hospital');
+        } else if (profile.partner_type === 'doctor') {
+          setOnboardingType('doctor');
+        } else if (profile.partner_type === 'expert') {
+          setOnboardingType('expert');
+        }
+      }
+    }
+  };
+
+  const setupRealtimeListeners = () => {
     // Set up realtime listeners
     const sosChannel = supabase
       .channel('sos-alerts')
@@ -96,7 +130,7 @@ const PartnerHome = () => {
       supabase.removeChannel(sosChannel);
       supabase.removeChannel(appointmentChannel);
     };
-  }, [user?.id]);
+  };
 
   const fetchSOSAlerts = async () => {
     const { data } = await supabase
@@ -188,12 +222,135 @@ const PartnerHome = () => {
     }
   };
 
+  const handleOnboardingComplete = () => {
+    setNeedsOnboarding(false);
+    setOnboardingType(null);
+    // Refresh profile to get updated data
+    window.location.reload();
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/welcome');
+  };
+
+  const getPartnerTypeIcon = () => {
+    switch (profile?.partner_type) {
+      case 'hospital': return <Building className="h-5 w-5" />;
+      case 'doctor': return <Stethoscope className="h-5 w-5" />;
+      case 'expert': return <Brain className="h-5 w-5" />;
+      default: return <User className="h-5 w-5" />;
+    }
+  };
+
+  const getPartnerTypeLabel = () => {
+    switch (profile?.partner_type) {
+      case 'hospital': return 'Hospital Partner';
+      case 'doctor': return 'Doctor';
+      case 'expert': return 'Health Expert';
+      default: return 'Partner';
+    }
+  };
+
+  // Show onboarding if needed
+  if (needsOnboarding && onboardingType) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold">Complete Your Partner Setup</h1>
+            <p className="text-muted-foreground">
+              Please complete your profile to start using the partner dashboard
+            </p>
+          </div>
+          
+          {onboardingType === 'hospital' && <HospitalOnboarding onComplete={handleOnboardingComplete} />}
+          {onboardingType === 'doctor' && <DoctorOnboarding onComplete={handleOnboardingComplete} />}
+          {onboardingType === 'expert' && <ExpertOnboarding onComplete={handleOnboardingComplete} />}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Partner Dashboard</h1>
-          <p className="text-muted-foreground">Manage emergency alerts and appointments</p>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold">Partner Dashboard</h1>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="flex items-center gap-1">
+                {getPartnerTypeIcon()}
+                {getPartnerTypeLabel()}
+              </Badge>
+              <p className="text-muted-foreground">
+                Welcome back, {profile?.full_name || profile?.doctor_name || 'Partner'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate('/settings')}>
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Today's Appointments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">
+                {appointments.filter(a => 
+                  new Date(a.appointment_time).toDateString() === new Date().toDateString()
+                ).length}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {new Set(appointments.map(a => a.user_id)).size}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">This Month</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                ₹{appointments.filter(a => 
+                  new Date(a.appointment_time).getMonth() === new Date().getMonth()
+                ).length * (profile?.consultation_price || profile?.service_charge || 500)}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Notifications</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-destructive">
+                {newAlerts.length + newAppointments.length}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Emergency SOS Alerts */}
@@ -249,7 +406,7 @@ const PartnerHome = () => {
                               onClick={() => handleSOSResponse(alert.id)}
                               className="bg-white text-destructive hover:bg-gray-100"
                             >
-                              Send Ambulance
+                              Respond
                             </Button>
                             <Button
                               variant="outline"
@@ -270,12 +427,12 @@ const PartnerHome = () => {
           </CardContent>
         </Card>
 
-        {/* Incoming Appointments */}
+        {/* Appointment Requests */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Appointment Requests
+              Recent Appointments
               {newAppointments.length > 0 && (
                 <Badge variant="default" className="ml-2">
                   {newAppointments.length} new
@@ -283,17 +440,17 @@ const PartnerHome = () => {
               )}
             </CardTitle>
             <CardDescription>
-              Manage incoming appointment requests from patients
+              Manage your recent and upcoming appointments
             </CardDescription>
           </CardHeader>
           <CardContent>
             {appointments.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">
-                No appointment requests
+                No appointments yet
               </p>
             ) : (
               <div className="space-y-4">
-                {appointments.map((appointment) => (
+                {appointments.slice(0, 5).map((appointment) => (
                   <Card 
                     key={appointment.id} 
                     className={`${newAppointments.includes(appointment.id) ? "ring-2 ring-primary" : ""} cursor-pointer`}
@@ -346,7 +503,7 @@ const PartnerHome = () => {
                                 variant="outline"
                                 onClick={() => updateAppointmentStatus(appointment.id, 'cancelled')}
                               >
-                                Decline
+                                Cancel
                               </Button>
                             </div>
                           )}
@@ -360,34 +517,41 @@ const PartnerHome = () => {
           </CardContent>
         </Card>
 
-        {/* Statistics */}
+        {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Calendar
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">{sosAlerts.length}</div>
+              <p className="text-sm text-muted-foreground">View and manage your schedule</p>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Pending Appointments</CardTitle>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Patient Management
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">
-                {appointments.filter(a => a.status === 'upcoming').length}
-              </div>
+              <p className="text-sm text-muted-foreground">Manage patient records and history</p>
             </CardContent>
           </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notifications
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{appointments.length}</div>
+              <p className="text-sm text-muted-foreground">View all notifications and alerts</p>
             </CardContent>
           </Card>
         </div>

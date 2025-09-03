@@ -179,6 +179,100 @@ export type Database = {
         }
         Relationships: []
       }
+      doctors: {
+        Row: {
+          availability_schedule: string | null
+          consultation_price: number
+          created_at: string | null
+          education: string | null
+          experience_years: number | null
+          id: string
+          is_available: boolean | null
+          name: string
+          partner_id: string
+          specialty: string
+          updated_at: string | null
+        }
+        Insert: {
+          availability_schedule?: string | null
+          consultation_price: number
+          created_at?: string | null
+          education?: string | null
+          experience_years?: number | null
+          id?: string
+          is_available?: boolean | null
+          name: string
+          partner_id: string
+          specialty: string
+          updated_at?: string | null
+        }
+        Update: {
+          availability_schedule?: string | null
+          consultation_price?: number
+          created_at?: string | null
+          education?: string | null
+          experience_years?: number | null
+          id?: string
+          is_available?: boolean | null
+          name?: string
+          partner_id?: string
+          specialty?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctors_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facilities: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_available: boolean | null
+          name: string
+          partner_id: string
+          price: number
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_available?: boolean | null
+          name: string
+          partner_id: string
+          price: number
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_available?: boolean | null
+          name?: string
+          partner_id?: string
+          price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facilities_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       food_items: {
         Row: {
           category: string | null
@@ -722,16 +816,22 @@ export type Database = {
           booking_price: number | null
           business_type: string | null
           city: string | null
+          consultation_price: number | null
           created_at: string
+          doctor_name: string | null
+          doctors: Json | null
           education: string | null
           expertise_area: string | null
+          facilities: Json | null
           full_name: string | null
           hospital_affiliation: string | null
+          hospital_name: string | null
           id: string
           is_available: boolean | null
           is_email_verified: boolean | null
           location_lat: number | null
           location_lng: number | null
+          partner_setup_complete: boolean | null
           partner_type: string | null
           phone: string | null
           rating: number | null
@@ -739,6 +839,7 @@ export type Database = {
           service_charge: number | null
           service_range: string | null
           service_type: string | null
+          specialty: string | null
           state: string | null
           updated_at: string
           vehicle_info: string | null
@@ -753,16 +854,22 @@ export type Database = {
           booking_price?: number | null
           business_type?: string | null
           city?: string | null
+          consultation_price?: number | null
           created_at?: string
+          doctor_name?: string | null
+          doctors?: Json | null
           education?: string | null
           expertise_area?: string | null
+          facilities?: Json | null
           full_name?: string | null
           hospital_affiliation?: string | null
+          hospital_name?: string | null
           id: string
           is_available?: boolean | null
           is_email_verified?: boolean | null
           location_lat?: number | null
           location_lng?: number | null
+          partner_setup_complete?: boolean | null
           partner_type?: string | null
           phone?: string | null
           rating?: number | null
@@ -770,6 +877,7 @@ export type Database = {
           service_charge?: number | null
           service_range?: string | null
           service_type?: string | null
+          specialty?: string | null
           state?: string | null
           updated_at?: string
           vehicle_info?: string | null
@@ -784,16 +892,22 @@ export type Database = {
           booking_price?: number | null
           business_type?: string | null
           city?: string | null
+          consultation_price?: number | null
           created_at?: string
+          doctor_name?: string | null
+          doctors?: Json | null
           education?: string | null
           expertise_area?: string | null
+          facilities?: Json | null
           full_name?: string | null
           hospital_affiliation?: string | null
+          hospital_name?: string | null
           id?: string
           is_available?: boolean | null
           is_email_verified?: boolean | null
           location_lat?: number | null
           location_lng?: number | null
+          partner_setup_complete?: boolean | null
           partner_type?: string | null
           phone?: string | null
           rating?: number | null
@@ -801,6 +915,7 @@ export type Database = {
           service_charge?: number | null
           service_range?: string | null
           service_type?: string | null
+          specialty?: string | null
           state?: string | null
           updated_at?: string
           vehicle_info?: string | null

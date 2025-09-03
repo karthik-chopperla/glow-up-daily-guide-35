@@ -16,6 +16,22 @@ export interface UserProfile {
   address?: string;
   created_at?: string;
   updated_at?: string;
+  // Partner-specific fields
+  consultation_price?: number;
+  specialty?: string;
+  doctor_name?: string;
+  hospital_name?: string;
+  facilities?: any[];
+  doctors?: any[];
+  partner_setup_complete?: boolean;
+  education?: string;
+  years_experience?: number;
+  availability_schedule?: string;
+  hospital_affiliation?: string;
+  phone?: string;
+  expertise_area?: string;
+  service_charge?: number;
+  work_description?: string;
 }
 
 // Type for user

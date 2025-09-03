@@ -18,29 +18,33 @@ type Hospital = {
   distance?: number;
 };
 
-// For now, we'll work with the existing appointments table
-// and use mock data for doctors and facilities since those tables need to be accessed
-type MockDoctor = {
+// Updated types to match database schema
+type Doctor = {
   id: string;
   name: string;
   specialty: string;
   experience_years: number;
   consultation_price: number;
-  hospital_id: string;
+  partner_id: string;
+  education?: string;
+  availability_schedule?: string;
+  is_available?: boolean;
 };
 
-type MockFacility = {
+type Facility = {
   id: string;
   name: string;
   price: number;
   description?: string;
-  hospital_id: string;
+  partner_id: string;
+  category?: string;
+  is_available?: boolean;
 };
 
 const UserHome = () => {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
-  const [doctors, setDoctors] = useState<MockDoctor[]>([]);
-  const [facilities, setFacilities] = useState<MockFacility[]>([]);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [facilities, setFacilities] = useState<Facility[]>([]);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,69 +76,93 @@ const UserHome = () => {
   };
 
   const fetchDoctorsByHospital = async (hospitalId: string) => {
-    // Mock doctors data for now since the doctors table exists but may not have data
-    const mockDoctors: MockDoctor[] = [
-      {
-        id: '1',
-        name: 'Dr. Rajesh Kumar',
-        specialty: 'General Physician',
-        experience_years: 15,
-        consultation_price: 500,
-        hospital_id: hospitalId
-      },
-      {
-        id: '2',
-        name: 'Dr. Priya Sharma',
-        specialty: 'Cardiologist',
-        experience_years: 12,
-        consultation_price: 800,
-        hospital_id: hospitalId
-      },
-      {
-        id: '3',
-        name: 'Dr. Amit Patel',
-        specialty: 'Pediatrician',
-        experience_years: 10,
-        consultation_price: 600,
-        hospital_id: hospitalId
-      }
-    ];
-    setDoctors(mockDoctors);
+    // Fetch real doctors from the database
+    const { data: doctorsData } = await supabase
+      .from('doctors')
+      .select('*')
+      .eq('partner_id', hospitalId)
+      .eq('is_available', true)
+      .order('name');
+    
+    if (doctorsData) {
+      setDoctors(doctorsData);
+    } else {
+      // Fallback to mock data if no real doctors found
+      const mockDoctors: Doctor[] = [
+        {
+          id: '1',
+          name: 'Dr. Rajesh Kumar',
+          specialty: 'General Physician',
+          experience_years: 15,
+          consultation_price: 500,
+          partner_id: hospitalId
+        },
+        {
+          id: '2',
+          name: 'Dr. Priya Sharma',
+          specialty: 'Cardiologist',
+          experience_years: 12,
+          consultation_price: 800,
+          partner_id: hospitalId
+        },
+        {
+          id: '3',
+          name: 'Dr. Amit Patel',
+          specialty: 'Pediatrician',
+          experience_years: 10,
+          consultation_price: 600,
+          partner_id: hospitalId
+        }
+      ];
+      setDoctors(mockDoctors);
+    }
   };
 
   const fetchFacilitiesByHospital = async (hospitalId: string) => {
-    // Mock facilities data for now since the facilities table exists but may not have data
-    const mockFacilities: MockFacility[] = [
-      {
-        id: '1',
-        name: 'MRI Scan',
-        price: 3500,
-        description: 'Magnetic Resonance Imaging',
-        hospital_id: hospitalId
-      },
-      {
-        id: '2',
-        name: 'Blood Test (Complete)',
-        price: 800,
-        description: 'Complete Blood Count with ESR',
-        hospital_id: hospitalId
-      },
-      {
-        id: '3',
-        name: 'X-Ray Chest',
-        price: 400,
-        description: 'Chest X-Ray PA View',
-        hospital_id: hospitalId
-      },
-      {
-        id: '4',
-        name: 'ECG',
-        price: 200,
-        description: 'Electrocardiogram',
-        hospital_id: hospitalId
-      }
-    ];
-    setFacilities(mockFacilities);
+    // Fetch real facilities from the database
+    const { data: facilitiesData } = await supabase
+      .from('facilities')
+      .select('*')
+      .eq('partner_id', hospitalId)
+      .eq('is_available', true)
+      .order('name');
+    
+    if (facilitiesData) {
+      setFacilities(facilitiesData);
+    } else {
+      // Fallback to mock data if no real facilities found
+      const mockFacilities: Facility[] = [
+        {
+          id: '1',
+          name: 'MRI Scan',
+          price: 3500,
+          description: 'Magnetic Resonance Imaging',
+          partner_id: hospitalId
+        },
+        {
+          id: '2',
+          name: 'Blood Test (Complete)',
+          price: 800,
+          description: 'Complete Blood Count with ESR',
+          partner_id: hospitalId
+        },
+        {
+          id: '3',
+          name: 'X-Ray Chest',
+          price: 400,
+          description: 'Chest X-Ray PA View',
+          partner_id: hospitalId
+        },
+        {
+          id: '4',
+          name: 'ECG',
+          price: 200,
+          description: 'Electrocardiogram',
+          partner_id: hospitalId
+        }
+      ];
+      setFacilities(mockFacilities);
+    }
   };
 
   const fetchAppointments = async () => {
