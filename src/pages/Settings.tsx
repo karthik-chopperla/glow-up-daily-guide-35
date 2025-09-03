@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, User, Mail, MapPin, Building, Settings as SettingsIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { validateName, validatePhone, validateUrl, sanitizeInput, logSecurityEvent } from '@/utils/validation';
 
 const PARTNER_SERVICES = [
   'AI Symptom Checker',
@@ -95,25 +96,69 @@ const Settings = () => {
     }));
   };
 
+  const validateForm = () => {
+    const errors: string[] = [];
+    
+    // Validate name
+    const nameValidation = validateName(formData.full_name);
+    if (!nameValidation.isValid) {
+      errors.push(nameValidation.error!);
+    }
+    
+    // Validate phone
+    const phoneValidation = validatePhone(formData.contact_info.phone);
+    if (!phoneValidation.isValid) {
+      errors.push(phoneValidation.error!);
+    }
+    
+    // Validate website URL
+    const urlValidation = validateUrl(formData.contact_info.website);
+    if (!urlValidation.isValid) {
+      errors.push(urlValidation.error!);
+    }
+    
+    return errors;
+  };
+
   const handleSave = async () => {
     if (!user?.id) return;
 
+    // Validate form data
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      toast({
+        title: "Validation Error",
+        description: validationErrors.join(', '),
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
+      // Sanitize all inputs
+      const sanitizedData = {
+        full_name: sanitizeInput(formData.full_name),
+        avatar_url: sanitizeInput(formData.avatar_url),
+        address: sanitizeInput(formData.address),
+        partner_services: formData.partner_services.map(service => sanitizeInput(service)),
+        partner_type: sanitizeInput(formData.partner_type),
+        contact_info: {
+          phone: sanitizeInput(formData.contact_info.phone),
+          email: sanitizeInput(formData.contact_info.email),
+          website: sanitizeInput(formData.contact_info.website)
+        },
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          full_name: formData.full_name,
-          avatar_url: formData.avatar_url,
-          address: formData.address,
-          partner_services: formData.partner_services,
-          partner_type: formData.partner_type,
-          contact_info: formData.contact_info,
-          updated_at: new Date().toISOString()
-        })
+        .update(sanitizedData)
         .eq('id', user.id);
 
       if (error) throw error;
+      
+      await logSecurityEvent('PROFILE_UPDATED', { userId: user.id });
 
       toast({
         title: "Profile updated",

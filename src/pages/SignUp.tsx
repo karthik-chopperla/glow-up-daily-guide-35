@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { Heart, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { validateEmail, validatePassword, sanitizeInput, authRateLimiter, logSecurityEvent } from "@/utils/validation";
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
@@ -30,16 +31,16 @@ const SignUp = () => {
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
 
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email is invalid";
+    // Validate email
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      newErrors.email = emailValidation.error!;
     }
 
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    // Validate password
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      newErrors.password = passwordValidation.error!;
     }
 
     if (password !== confirmPassword) {
@@ -53,6 +54,14 @@ const SignUp = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Rate limiting check
+    if (!authRateLimiter.isAllowed(`signup-${email}`, 3, 15 * 60 * 1000)) {
+      const remainingTime = Math.ceil(authRateLimiter.getRemainingTime(`signup-${email}`, 15 * 60 * 1000) / 1000 / 60);
+      setErrors({ general: `Too many signup attempts. Please try again in ${remainingTime} minutes.` });
+      await logSecurityEvent('RATE_LIMIT_EXCEEDED', { action: 'signup', email });
+      return;
+    }
+    
     if (!validateForm()) {
       return;
     }
@@ -61,9 +70,13 @@ const SignUp = () => {
     setErrors({});
 
     try {
-      const { error } = await signUp(email, password);
+      // Sanitize inputs
+      const sanitizedEmail = sanitizeInput(email);
+      const { error } = await signUp(sanitizedEmail, password);
       
       if (error) {
+        await logSecurityEvent('SIGNUP_FAILED', { email: sanitizedEmail, error: error.message });
+        
         if (error.message?.includes('already registered')) {
           setErrors({ email: 'This email is already registered. Try signing in instead.' });
         } else {
@@ -72,6 +85,8 @@ const SignUp = () => {
         setIsLoading(false);
         return;
       }
+      
+      await logSecurityEvent('SIGNUP_SUCCESS', { email: sanitizedEmail });
 
       toast({
         title: "Account created successfully!",

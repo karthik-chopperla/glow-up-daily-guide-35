@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { Heart, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { validateEmail, sanitizeInput, authRateLimiter, logSecurityEvent } from "@/utils/validation";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -49,6 +50,14 @@ const SignIn = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Rate limiting check
+    if (!authRateLimiter.isAllowed(`signin-${email}`, 5, 15 * 60 * 1000)) {
+      const remainingTime = Math.ceil(authRateLimiter.getRemainingTime(`signin-${email}`, 15 * 60 * 1000) / 1000 / 60);
+      setErrors({ general: `Too many login attempts. Please try again in ${remainingTime} minutes.` });
+      await logSecurityEvent('RATE_LIMIT_EXCEEDED', { action: 'signin', email });
+      return;
+    }
+    
     if (!validateForm()) {
       return;
     }
@@ -57,9 +66,13 @@ const SignIn = () => {
     setErrors({});
 
     try {
-      const { error } = await signIn(email, password);
+      // Sanitize inputs
+      const sanitizedEmail = sanitizeInput(email);
+      const { error } = await signIn(sanitizedEmail, password);
       
       if (error) {
+        await logSecurityEvent('SIGNIN_FAILED', { email: sanitizedEmail, error: error.message });
+        
         if (error.message?.includes('Invalid login credentials')) {
           setErrors({ general: 'Invalid email or password. Please check your credentials and try again.' });
         } else if (error.message?.includes('Email not confirmed')) {
@@ -70,6 +83,8 @@ const SignIn = () => {
         setIsLoading(false);
         return;
       }
+      
+      await logSecurityEvent('SIGNIN_SUCCESS', { email: sanitizedEmail });
 
       toast({
         title: "Welcome back!",
