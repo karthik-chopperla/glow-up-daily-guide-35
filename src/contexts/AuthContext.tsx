@@ -33,7 +33,7 @@ interface AuthContextValue {
   profile: UserProfile | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any; data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -154,13 +154,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription?.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, fullName?: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: fullName
+          }
         },
       });
       
@@ -169,7 +172,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
       
-      return { error: null };
+      // Account is created immediately (no email verification)
+      return { error: null, data };
     } catch (error) {
       console.error('Error signing up:', error);
       return { error };
@@ -195,18 +199,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Remove Google sign-in as per requirements
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/role-selection`,
-      },
-    });
-    
-    if (error) {
-      console.error('Error signing in with Google:', error);
-      throw error;
-    }
+    throw new Error('Google sign-in is not available. Please use email and password.');
   };
 
   const setRole = async (role: 'user' | 'partner', partnerData?: {services: string[], type: string}) => {

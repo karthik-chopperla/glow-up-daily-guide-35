@@ -13,6 +13,7 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -72,7 +73,7 @@ const SignUp = () => {
     try {
       // Sanitize inputs
       const sanitizedEmail = sanitizeInput(email);
-      const { error } = await signUp(sanitizedEmail, password);
+      const { error } = await signUp(sanitizedEmail, password, fullName);
       
       if (error) {
         await logSecurityEvent('SIGNUP_FAILED', { email: sanitizedEmail, error: error.message });
@@ -125,6 +126,17 @@ const SignUp = () => {
         
         <CardContent>
           <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name (Optional)</Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Enter your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
