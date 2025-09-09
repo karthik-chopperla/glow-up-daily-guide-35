@@ -47,6 +47,8 @@ const queryClient = new QueryClient();
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
+  console.log('PublicRoute - user:', user, 'loading:', loading);
+  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -56,6 +58,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (user) {
+    console.log('PublicRoute - User found, redirecting to /');
     return <Navigate to="/" replace />;
   }
   
@@ -64,6 +67,8 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => {
   const { user, profile } = useAuth();
+  
+  console.log('AppRoutes - user:', user, 'profile:', profile);
   
   return (
     <>
@@ -120,9 +125,22 @@ const AppRoutes = () => {
         <Route path="/" element={
           user ? (
             <ProtectedRoute>
-              {profile?.role === 'user' ? <Navigate to="/user-home" /> : 
-              profile?.role === 'partner' ? <Navigate to="/partner-home" /> : 
-              <Navigate to="/role-selection" />}
+              {profile?.role === 'user' ? (
+                <>
+                  {console.log('Redirecting to /user-home')}
+                  <Navigate to="/user-home" replace />
+                </>
+              ) : profile?.role === 'partner' ? (
+                <>
+                  {console.log('Redirecting to /partner-home')}
+                  <Navigate to="/partner-home" replace />
+                </>
+              ) : (
+                <>
+                  {console.log('No role, redirecting to /role-selection')}
+                  <Navigate to="/role-selection" replace />
+                </>
+              )}
             </ProtectedRoute>
           ) : (
             <Navigate to="/welcome" replace />
