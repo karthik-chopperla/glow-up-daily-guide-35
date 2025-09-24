@@ -73,7 +73,7 @@ const PartnerHome = () => {
   }, [user?.id, profile]);
 
   const checkOnboardingStatus = () => {
-    if (profile && profile.role === 'partner') {
+    if (profile && ['doctor', 'pharmacy_partner', 'elder_expert', 'nurse'].includes(profile.role || '')) {
       if (!profile.partner_setup_complete) {
         setNeedsOnboarding(true);
         // Determine onboarding type based on partner_type

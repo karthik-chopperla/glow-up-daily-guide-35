@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireRole?: 'user' | 'partner';
+  requireRole?: 'patient' | 'doctor' | 'pharmacy_partner' | 'elder_expert' | 'nurse' | 'user' | 'partner';
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireRole }) => {
@@ -30,11 +30,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireRole }
   }
 
   // If role is required and doesn't match, redirect to appropriate dashboard
-  if (requireRole && profile?.role !== requireRole) {
-    if (profile?.role === 'user') {
-      return <Navigate to="/home" replace />;
-    } else if (profile?.role === 'partner') {
-      return <Navigate to="/partner-dashboard" replace />;
+  if (requireRole && profile?.role) {
+    // Check for role compatibility (backward compatibility)
+    const isRoleMatch = 
+      requireRole === profile.role ||
+      (requireRole === 'user' && profile.role === 'patient') ||
+      (requireRole === 'partner' && ['doctor', 'pharmacy_partner', 'elder_expert', 'nurse'].includes(profile.role));
+
+    if (!isRoleMatch) {
+      if (profile.role === 'patient') {
+        return <Navigate to="/patient-dashboard" replace />;
+      } else if (['doctor', 'pharmacy_partner', 'elder_expert', 'nurse'].includes(profile.role)) {
+        return <Navigate to="/partner-dashboard" replace />;
+      }
     }
   }
 

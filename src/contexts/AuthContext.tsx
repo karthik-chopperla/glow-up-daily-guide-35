@@ -9,14 +9,33 @@ export interface UserProfile {
   id: string;
   full_name?: string;
   avatar_url?: string;
-  role?: 'user' | 'partner';
+  role?: 'patient' | 'doctor' | 'pharmacy_partner' | 'elder_expert' | 'nurse' | 'admin';
+  
+  // Basic profile fields
+  age?: number;
+  gender?: string;
+  
+  // Health-related fields
+  medical_history?: string[];
+  allergies?: string[];
+  chronic_conditions?: string[];
+  preferred_medicine_system?: 'Allopathy' | 'Ayurveda' | 'Homeopathy';
+  emergency_contacts?: any[];
+  blood_group?: string;
+  height_cm?: number;
+  weight_kg?: number;
+  date_of_birth?: string;
+  
+  // Legacy fields for backward compatibility
   partner_services?: string[];
   partner_type?: string;
   contact_info?: any;
   address?: string;
+  phone?: string;
+  city?: string;
+  state?: string;
   created_at?: string;
   updated_at?: string;
-  // Partner-specific fields
   consultation_price?: number;
   specialty?: string;
   doctor_name?: string;
@@ -28,7 +47,6 @@ export interface UserProfile {
   years_experience?: number;
   availability_schedule?: string;
   hospital_affiliation?: string;
-  phone?: string;
   expertise_area?: string;
   service_charge?: number;
   work_description?: string;
@@ -53,9 +71,10 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  setRole: (role: 'user' | 'partner', partnerData?: {services: string[], type: string}) => Promise<{ error: any }>;
+  setRole: (role: 'patient' | 'doctor' | 'pharmacy_partner' | 'elder_expert' | 'nurse' | 'admin', partnerData?: {services: string[], type: string}) => Promise<{ error: any }>;
+  updateProfile: (profileData: Partial<UserProfile>) => Promise<{ error: any }>;
   checkProfile: () => Promise<UserProfile | null>;
-  redirectToRoleDashboard: (role: 'user' | 'partner') => void;
+  redirectToRoleDashboard: (role: 'patient' | 'doctor' | 'pharmacy_partner' | 'elder_expert' | 'nurse' | 'admin') => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -90,10 +109,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
-      return data as UserProfile;
+      if (!data) return null;
+
+      // Map database role values and fix data types
+      const mappedProfile: UserProfile = {
+        ...data,
+        role: mapDatabaseRole(data.role),
+        emergency_contacts: Array.isArray(data.emergency_contacts) ? data.emergency_contacts : [],
+        facilities: Array.isArray(data.facilities) ? data.facilities : [],
+        doctors: Array.isArray(data.doctors) ? data.doctors : [],
+        medical_history: Array.isArray(data.medical_history) ? data.medical_history : [],
+        allergies: Array.isArray(data.allergies) ? data.allergies : [],
+        chronic_conditions: Array.isArray(data.chronic_conditions) ? data.chronic_conditions : []
+      };
+
+      return mappedProfile;
     } catch (error) {
       console.error('Error fetching profile:', error);
       return null;
+    }
+  };
+
+  // Helper function to map database roles to TypeScript types
+  const mapDatabaseRole = (dbRole: string): UserProfile['role'] => {
+    switch (dbRole) {
+      case 'user':
+        return 'patient';
+      case 'partner':
+        return 'doctor'; // Default partner to doctor for now
+      case 'patient':
+      case 'doctor':
+      case 'pharmacy_partner':
+      case 'elder_expert':
+      case 'nurse':
+      case 'admin':
+        return dbRole as UserProfile['role'];
+      default:
+        return 'patient'; // Default fallback
     }
   };
 
@@ -220,7 +272,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     throw new Error('Google sign-in is not available. Please use email and password.');
   };
 
-  const setRole = async (role: 'user' | 'partner', partnerData?: {services: string[], type: string}) => {
+  const setRole = async (role: 'patient' | 'doctor' | 'pharmacy_partner' | 'elder_expert' | 'nurse' | 'admin', partnerData?: {services: string[], type: string}) => {
     if (!user) {
       return { error: { message: 'User not authenticated' } };
     }
@@ -232,7 +284,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         full_name: user.full_name || user.name,
       };
 
-      if (role === 'partner' && partnerData) {
+      // For backward compatibility, keep partner-specific logic
+      if ((role === 'doctor' || role === 'pharmacy_partner' || role === 'elder_expert') && partnerData) {
         profileData.partner_services = partnerData.services;
         profileData.partner_type = partnerData.type;
       }
@@ -260,12 +313,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const redirectToRoleDashboard = (role: 'user' | 'partner') => {
+  const updateProfile = async (profileData: Partial<UserProfile>) => {
+    if (!user) {
+      return { error: { message: 'User not authenticated' } };
+    }
+
+    try {
+      // Remove role from update if it exists to prevent conflicts
+      const { role, ...updateData } = profileData;
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating profile:', error);
+        return { error };
+      }
+
+      // Refresh profile data
+      const updatedProfile = await fetchProfile(user.id);
+      setProfile(updatedProfile);
+
+      return { error: null };
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return { error };
+    }
+  };
+
+  const redirectToRoleDashboard = (role: 'patient' | 'doctor' | 'pharmacy_partner' | 'elder_expert' | 'nurse' | 'admin') => {
     if (typeof window !== 'undefined') {
-      if (role === 'user') {
-        window.location.href = '/user-home';
-      } else if (role === 'partner') {
-        window.location.href = '/partner-home';
+      if (role === 'patient') {
+        window.location.href = '/patient-dashboard';
+      } else if (role === 'doctor') {
+        window.location.href = '/doctor-dashboard';
+      } else if (role === 'pharmacy_partner') {
+        window.location.href = '/pharmacy-dashboard';
+      } else if (role === 'elder_expert') {
+        window.location.href = '/elder-dashboard';
+      } else if (role === 'nurse') {
+        window.location.href = '/nurse-dashboard';
       }
     }
   };
@@ -293,6 +382,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signInWithGoogle, 
       signOut, 
       setRole,
+      updateProfile,
       checkProfile,
       redirectToRoleDashboard
     }}>

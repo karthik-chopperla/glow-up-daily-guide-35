@@ -30,7 +30,8 @@ import MyRecords from "./pages/MyRecords";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import HomeScreen from "./pages/HomeScreen";
-import UserHome from "./pages/UserHome";
+import PatientDashboard from "./pages/PatientDashboard";
+// Keeping PartnerHome for backward compatibility
 import PartnerHome from "./pages/PartnerHome";
 import ServicesScreen from "./pages/ServicesScreen";
 import BottomTabNav from "./components/BottomTabNav";
@@ -125,15 +126,15 @@ const AppRoutes = () => {
         <Route path="/" element={
           user ? (
             <ProtectedRoute>
-              {profile?.role === 'user' ? (
+              {profile?.role === 'patient' ? (
                 <>
-                  {console.log('Redirecting to /user-home')}
-                  <Navigate to="/user-home" replace />
+                  {console.log('Redirecting to /patient-dashboard')}
+                  <Navigate to="/patient-dashboard" replace />
                 </>
-              ) : profile?.role === 'partner' ? (
+              ) : profile?.role === 'doctor' || profile?.role === 'pharmacy_partner' || profile?.role === 'elder_expert' || profile?.role === 'nurse' ? (
                 <>
-                  {console.log('Redirecting to /partner-home')}
-                  <Navigate to="/partner-home" replace />
+                  {console.log('Redirecting to partner dashboard')}
+                  <Navigate to="/partner-dashboard" replace />
                 </>
               ) : (
                 <>
@@ -247,14 +248,14 @@ const AppRoutes = () => {
             <SubscriptionPlans />
           </ProtectedRoute>
         } />
-        <Route path="/user-home" element={
-          <ProtectedRoute requireRole="user">
-            <UserHome />
+        <Route path="/patient-dashboard" element={
+          <ProtectedRoute requireRole="patient">
+            <PatientDashboard />
           </ProtectedRoute>
         } />
-        <Route path="/partner-home" element={
-          <ProtectedRoute requireRole="partner">
-            <PartnerHome />
+        <Route path="/partner-dashboard" element={
+          <ProtectedRoute requireRole="doctor">
+            <PartnerDashboard />
           </ProtectedRoute>
         } />
         <Route path="/settings" element={

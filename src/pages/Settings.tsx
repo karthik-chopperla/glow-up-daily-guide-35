@@ -288,7 +288,7 @@ const Settings = () => {
         </Card>
 
         {/* Partner-specific Settings */}
-        {profile?.role === 'partner' && (
+        {profile?.role && ['doctor', 'pharmacy_partner', 'elder_expert', 'nurse'].includes(profile.role) && (
           <>
             <Card>
               <CardHeader>
