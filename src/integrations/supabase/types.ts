@@ -229,6 +229,68 @@ export type Database = {
           },
         ]
       }
+      elder_experts: {
+        Row: {
+          availability_schedule: Json | null
+          consultation_fee: number | null
+          created_at: string | null
+          experience_years: number | null
+          id: string
+          is_available: boolean | null
+          languages_spoken: string[] | null
+          rating: number | null
+          specialty: string
+          total_consultations: number | null
+          traditional_knowledge_areas: string[] | null
+          updated_at: string | null
+          user_id: string
+          verification_documents: Json | null
+          verification_status: string | null
+        }
+        Insert: {
+          availability_schedule?: Json | null
+          consultation_fee?: number | null
+          created_at?: string | null
+          experience_years?: number | null
+          id?: string
+          is_available?: boolean | null
+          languages_spoken?: string[] | null
+          rating?: number | null
+          specialty: string
+          total_consultations?: number | null
+          traditional_knowledge_areas?: string[] | null
+          updated_at?: string | null
+          user_id: string
+          verification_documents?: Json | null
+          verification_status?: string | null
+        }
+        Update: {
+          availability_schedule?: Json | null
+          consultation_fee?: number | null
+          created_at?: string | null
+          experience_years?: number | null
+          id?: string
+          is_available?: boolean | null
+          languages_spoken?: string[] | null
+          rating?: number | null
+          specialty?: string
+          total_consultations?: number | null
+          traditional_knowledge_areas?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+          verification_documents?: Json | null
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "elder_experts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       facilities: {
         Row: {
           category: string | null
@@ -807,23 +869,97 @@ export type Database = {
         }
         Relationships: []
       }
+      prescriptions: {
+        Row: {
+          appointment_id: string | null
+          created_at: string | null
+          digital_signature: string | null
+          doctor_id: string
+          dosage_instructions: string | null
+          duration_days: number | null
+          id: string
+          is_active: boolean | null
+          medicines: Json
+          patient_id: string
+          special_instructions: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string | null
+          digital_signature?: string | null
+          doctor_id: string
+          dosage_instructions?: string | null
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean | null
+          medicines?: Json
+          patient_id: string
+          special_instructions?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string | null
+          digital_signature?: string | null
+          doctor_id?: string
+          dosage_instructions?: string | null
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean | null
+          medicines?: Json
+          patient_id?: string
+          special_instructions?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
           age: number | null
+          allergies: string[] | null
           availability_schedule: string | null
           avatar_url: string | null
+          blood_group: string | null
           booking_price: number | null
           business_type: string | null
+          chronic_conditions: string[] | null
           city: string | null
           consultation_price: number | null
           created_at: string
+          date_of_birth: string | null
           doctor_name: string | null
           doctors: Json | null
           education: string | null
+          emergency_contacts: Json | null
           expertise_area: string | null
           facilities: Json | null
           full_name: string | null
+          gender: string | null
+          height_cm: number | null
           hospital_affiliation: string | null
           hospital_name: string | null
           id: string
@@ -831,9 +967,13 @@ export type Database = {
           is_email_verified: boolean | null
           location_lat: number | null
           location_lng: number | null
+          medical_history: string[] | null
           partner_setup_complete: boolean | null
           partner_type: string | null
           phone: string | null
+          preferred_medicine_system:
+            | Database["public"]["Enums"]["medicine_system"]
+            | null
           rating: number | null
           role: Database["public"]["Enums"]["user_role"] | null
           service_charge: number | null
@@ -843,25 +983,33 @@ export type Database = {
           state: string | null
           updated_at: string
           vehicle_info: string | null
+          weight_kg: number | null
           work_description: string | null
           years_experience: number | null
         }
         Insert: {
           address?: string | null
           age?: number | null
+          allergies?: string[] | null
           availability_schedule?: string | null
           avatar_url?: string | null
+          blood_group?: string | null
           booking_price?: number | null
           business_type?: string | null
+          chronic_conditions?: string[] | null
           city?: string | null
           consultation_price?: number | null
           created_at?: string
+          date_of_birth?: string | null
           doctor_name?: string | null
           doctors?: Json | null
           education?: string | null
+          emergency_contacts?: Json | null
           expertise_area?: string | null
           facilities?: Json | null
           full_name?: string | null
+          gender?: string | null
+          height_cm?: number | null
           hospital_affiliation?: string | null
           hospital_name?: string | null
           id: string
@@ -869,9 +1017,13 @@ export type Database = {
           is_email_verified?: boolean | null
           location_lat?: number | null
           location_lng?: number | null
+          medical_history?: string[] | null
           partner_setup_complete?: boolean | null
           partner_type?: string | null
           phone?: string | null
+          preferred_medicine_system?:
+            | Database["public"]["Enums"]["medicine_system"]
+            | null
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
           service_charge?: number | null
@@ -881,25 +1033,33 @@ export type Database = {
           state?: string | null
           updated_at?: string
           vehicle_info?: string | null
+          weight_kg?: number | null
           work_description?: string | null
           years_experience?: number | null
         }
         Update: {
           address?: string | null
           age?: number | null
+          allergies?: string[] | null
           availability_schedule?: string | null
           avatar_url?: string | null
+          blood_group?: string | null
           booking_price?: number | null
           business_type?: string | null
+          chronic_conditions?: string[] | null
           city?: string | null
           consultation_price?: number | null
           created_at?: string
+          date_of_birth?: string | null
           doctor_name?: string | null
           doctors?: Json | null
           education?: string | null
+          emergency_contacts?: Json | null
           expertise_area?: string | null
           facilities?: Json | null
           full_name?: string | null
+          gender?: string | null
+          height_cm?: number | null
           hospital_affiliation?: string | null
           hospital_name?: string | null
           id?: string
@@ -907,9 +1067,13 @@ export type Database = {
           is_email_verified?: boolean | null
           location_lat?: number | null
           location_lng?: number | null
+          medical_history?: string[] | null
           partner_setup_complete?: boolean | null
           partner_type?: string | null
           phone?: string | null
+          preferred_medicine_system?:
+            | Database["public"]["Enums"]["medicine_system"]
+            | null
           rating?: number | null
           role?: Database["public"]["Enums"]["user_role"] | null
           service_charge?: number | null
@@ -919,6 +1083,7 @@ export type Database = {
           state?: string | null
           updated_at?: string
           vehicle_info?: string | null
+          weight_kg?: number | null
           work_description?: string | null
           years_experience?: number | null
         }
@@ -1160,6 +1325,60 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string | null
+          discount_percentage: number | null
+          features: Json
+          id: string
+          includes_diet_plans: boolean | null
+          includes_elder_advice: boolean | null
+          includes_pregnancy_care: boolean | null
+          is_active: boolean | null
+          max_consultations: number | null
+          max_sos_calls: number | null
+          plan_name: string
+          price_monthly: number
+          price_yearly: number | null
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          discount_percentage?: number | null
+          features?: Json
+          id?: string
+          includes_diet_plans?: boolean | null
+          includes_elder_advice?: boolean | null
+          includes_pregnancy_care?: boolean | null
+          is_active?: boolean | null
+          max_consultations?: number | null
+          max_sos_calls?: number | null
+          plan_name: string
+          price_monthly: number
+          price_yearly?: number | null
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          discount_percentage?: number | null
+          features?: Json
+          id?: string
+          includes_diet_plans?: boolean | null
+          includes_elder_advice?: boolean | null
+          includes_pregnancy_care?: boolean | null
+          is_active?: boolean | null
+          max_consultations?: number | null
+          max_sos_calls?: number | null
+          plan_name?: string
+          price_monthly?: number
+          price_yearly?: number | null
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           auto_renewal: boolean | null
@@ -1253,6 +1472,110 @@ export type Database = {
         }
         Relationships: []
       }
+      triage_results: {
+        Row: {
+          ai_response_raw: string | null
+          consultation_urgent: boolean | null
+          created_at: string | null
+          follow_up_required: boolean | null
+          home_remedies: string[] | null
+          id: string
+          recommended_action: string
+          suggested_specialties: string[] | null
+          symptoms: string
+          triage_level: Database["public"]["Enums"]["triage_level"]
+          user_id: string
+        }
+        Insert: {
+          ai_response_raw?: string | null
+          consultation_urgent?: boolean | null
+          created_at?: string | null
+          follow_up_required?: boolean | null
+          home_remedies?: string[] | null
+          id?: string
+          recommended_action: string
+          suggested_specialties?: string[] | null
+          symptoms: string
+          triage_level: Database["public"]["Enums"]["triage_level"]
+          user_id: string
+        }
+        Update: {
+          ai_response_raw?: string | null
+          consultation_urgent?: boolean | null
+          created_at?: string | null
+          follow_up_required?: boolean | null
+          home_remedies?: string[] | null
+          id?: string
+          recommended_action?: string
+          suggested_specialties?: string[] | null
+          symptoms?: string
+          triage_level?: Database["public"]["Enums"]["triage_level"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "triage_results_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_subscriptions: {
+        Row: {
+          auto_renewal: boolean | null
+          billing_cycle: string | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          payment_status: string | null
+          plan_id: string
+          started_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_renewal?: boolean | null
+          billing_cycle?: string | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          payment_status?: string | null
+          plan_id: string
+          started_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_renewal?: boolean | null
+          billing_cycle?: string | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          payment_status?: string | null
+          plan_id?: string
+          started_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_plans: {
         Row: {
           created_at: string
@@ -1310,6 +1633,24 @@ export type Database = {
       }
     }
     Enums: {
+      appointment_status:
+        | "scheduled"
+        | "confirmed"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "no_show"
+      appointment_type: "online" | "in_person"
+      medicine_system: "Allopathy" | "Ayurveda" | "Homeopathy"
+      sos_status:
+        | "active"
+        | "assigned"
+        | "en_route"
+        | "arrived"
+        | "completed"
+        | "cancelled"
+      subscription_tier: "SILVER" | "GOLD" | "PLATINUM"
+      triage_level: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
       user_role:
         | "user"
         | "partner"
@@ -1463,6 +1804,26 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      appointment_status: [
+        "scheduled",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "no_show",
+      ],
+      appointment_type: ["online", "in_person"],
+      medicine_system: ["Allopathy", "Ayurveda", "Homeopathy"],
+      sos_status: [
+        "active",
+        "assigned",
+        "en_route",
+        "arrived",
+        "completed",
+        "cancelled",
+      ],
+      subscription_tier: ["SILVER", "GOLD", "PLATINUM"],
+      triage_level: ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
       user_role: [
         "user",
         "partner",
