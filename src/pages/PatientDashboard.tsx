@@ -25,107 +25,107 @@ const PatientDashboard = () => {
       description: "Get instant health advice based on your symptoms",
       icon: Brain,
       href: "/symptom-checker",
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "Book Doctor",
       description: "Find and book appointments with healthcare providers",
       icon: Stethoscope,
-      href: "/book-doctor",
-      color: "text-green-600",
-      bgColor: "bg-green-50"
+      href: "/doctor-booking",
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "Emergency SOS",
       description: "Get immediate emergency assistance",
       icon: AlertTriangle,
       href: "/emergency",
-      color: "text-red-600",
-      bgColor: "bg-red-50"
+      color: "text-destructive",
+      bgColor: "bg-destructive/10"
     },
     {
       title: "Medicine Reminders",
       description: "Set and track your medication schedule",
       icon: Pill,
       href: "/medicine-reminders",
-      color: "text-purple-600",
-      bgColor: "bg-purple-50"
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "Find Hospitals",
       description: "Locate nearby hospitals and healthcare facilities",
       icon: MapPin,
       href: "/hospitals",
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50"
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "Elder Advice",
       description: "Consult with traditional medicine experts",
       icon: Heart,
-      href: "/elder-advice",
-      color: "text-orange-600",
-      bgColor: "bg-orange-50"
+      href: "/remedies",
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "Mental Health",
       description: "Access mental health support and resources",
       icon: Brain,
-      href: "/mental-health",
-      color: "text-pink-600",
-      bgColor: "bg-pink-50"
+      href: "/mental-health-support",
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "Home Nursing",
       description: "Book professional nursing care at home",
       icon: Home,
-      href: "/home-nursing",
-      color: "text-teal-600",
-      bgColor: "bg-teal-50"
+      href: "/home-nursing-booking",
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "Pregnancy Care",
       description: "Comprehensive pregnancy and baby care plans",
       icon: Baby,
-      href: "/pregnancy-care",
-      color: "text-rose-600",
-      bgColor: "bg-rose-50"
+      href: "/pregnancy-care-plan",
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "Insurance",
       description: "Manage your health insurance plans",
       icon: Shield,
       href: "/insurance",
-      color: "text-cyan-600",
-      bgColor: "bg-cyan-50"
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "Health Tracking",
       description: "Monitor your daily health metrics",
       icon: Activity,
-      href: "/health-tracking",
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-50"
+      href: "/fitness",
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     },
     {
       title: "My Appointments",
       description: "View and manage your upcoming appointments",
       icon: Calendar,
-      href: "/appointments",
-      color: "text-amber-600",
-      bgColor: "bg-amber-50"
+      href: "/records",
+      color: "text-primary",
+      bgColor: "bg-primary/10"
     }
   ];
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary to-primary/80 text-white">
+      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Welcome back, {profile?.full_name || user?.name}</h1>
+              <h1 className="text-3xl font-bold">Welcome back, {profile?.full_name || user?.email}</h1>
               <p className="text-primary-foreground/80 mt-2">Your health is our priority</p>
             </div>
             <div className="text-right">
@@ -172,7 +172,7 @@ const PatientDashboard = () => {
         <div className="fixed bottom-6 right-6">
           <Button 
             size="lg"
-            className="h-16 w-16 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            className="h-16 w-16 rounded-full bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg hover:shadow-xl transition-all duration-200"
             onClick={() => window.location.href = '/emergency'}
           >
             <AlertTriangle className="w-8 h-8" />
